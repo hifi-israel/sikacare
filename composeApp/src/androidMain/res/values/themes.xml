@@ -1,0 +1,15 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Tema principal de la app -->
+    <style name="Theme.App" parent="@android:style/Theme.Material.Light.NoActionBar">
+        <!-- Configura aquí colores/atributos de tu app -->
+    </style>
+
+    <!-- Tema del Splash Screen del sistema -->
+    <style name="Theme.App.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/splash_background</item>
+        <!-- Drawable usado para el ícono del splash. Puede ser vectorial o PNG sin extensión en la referencia -->
+        <item name="windowSplashScreenAnimatedIcon">@drawable/logo</item>
+        <!-- Tema al que transiciona tras el splash -->
+        <item name="postSplashScreenTheme">@style/Theme.App</item>
+    </style>
+</resources>
