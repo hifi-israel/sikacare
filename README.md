@@ -50,23 +50,32 @@ Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-mu
 
 ---
 
-## SikaCore
+## SikaCare
 
-Este proyecto es una implementación con Kotlin Multiplatform (KMP) de una aplicación de autenticación moderna. Combina prácticas de desarrollo multiplataforma con una interfaz elegante y funcional.
+SikaCare es una aplicación móvil de inteligencia artificial creada para guiar a cualquier persona en situaciones de emergencia médica, ofreciendo instrucciones claras, visuales y seguras en tiempo real. Imagina el peor escenario: un niño se atraganta y cada segundo cuenta. SikaCare permite acceder a una animación paso a paso de la maniobra correcta, diseñada para ser seguida en la urgencia y salvar vidas antes de que llegue la ambulancia.
 
 ![Kotlin](https://img.shields.io/badge/Kotlin-Multiplatform-7F52FF?style=for-the-badge&logo=kotlin&logoColor=white)
 ![Compose](https://img.shields.io/badge/Compose-Multiplatform-4285F4?style=for-the-badge&logo=jetpackcompose&logoColor=white)
+![Health](https://img.shields.io/badge/Health-Emergency-FF6B6B?style=for-the-badge&logo=health&logoColor=white)
 
-### Aplicaciones en Kotlin Multiplataforma
+### 🚨 Funcionalidades Principales
 
-**Temario:**
-- Capítulo 1 - Configuración del proyecto KMP
-- Capítulo 2 - Implementación del Splash Screen
-- Capítulo 3 - Pantalla de Login compartida
-- Capítulo 4 - Integración con autenticación social
-- Capítulo 5 - Animaciones y transiciones
-- Capítulo 6 - Recursos compartidos
-- Capítulo 7 - Configuración multiplataforma
+- **Primeros Auxilios**: Guías animadas y visuales para actuar correctamente en emergencias
+- **Agendar Citas Médicas**: Solicita turnos sin esperas telefónicas
+- **Consultas Virtuales**: Atención médica remota desde una plataforma segura
+- **Preclasificación de Enfermedades**: Orientación inicial sobre síntomas
+- **Noticias y Consejos**: Información confiable y educativa en salud
+- **Clínicas Móviles**: Consulta rutas y horarios en tu comunidad
+- **Accesibilidad**: Modo lectura en voz alta para personas con discapacidad visual
+- **Recordatorios de Salud**: Notificaciones para medicamentos y citas
+- **Registro de Salud**: Calcula el IMC y recibe recomendaciones personalizadas
+- **Calendario de Ferias y Jornadas**: Mantente conectado con actividades preventivas del MINSA
+
+### 🏥 Misión
+
+La app no gestiona expedientes clínicos profesionales, pero se inspira en los lineamientos de la Normativa 004 del MINSA, garantizando que la información proporcionada sea confiable y coherente con los protocolos de salud. SikaCare es una herramienta de apoyo accesible, práctica y segura para actuar con rapidez ante emergencias.
+
+Más allá de primeros auxilios, SikaCare promueve la prevención y el acceso a la salud para todos, apoyando los ejes del Plan Nacional de Lucha contra la Pobreza y el Desarrollo Humano. Utiliza tecnología innovadora y fomenta la formación comunitaria para salvar vidas y reducir riesgos en poblaciones vulnerables.
 
 ### 🛠 Instalación
 
@@ -109,18 +118,34 @@ Primera vista del proyecto que se lanzará siempre que se ejecute la app. Implem
 - **iOS** (iOS 13+)
 - **Desktop** (Windows, macOS, Linux)
 
-### 🎨 Características
+### 🎨 Características Técnicas
 
 - **UI Moderna**: Interfaz desarrollada con Jetpack Compose
 - **Splash Screen**: Pantalla de carga nativa para cada plataforma
 - **Autenticación**: Pantalla de login con integración social
 - **Animaciones**: Transiciones fluidas y efectos visuales
 - **Material Design 3**: Sistema de diseño consistente
+- **Accesibilidad**: Soporte completo para lectores de pantalla
+
+### 📊 Estado del Desarrollo
+
+Actualmente, el proyecto incluye la implementación del Splash Screen y la pantalla de Login. Las demás funcionalidades están planificadas y se irán integrando en futuras versiones.
+
+**Versión Actual:**
+- ✅ Splash Screen multiplataforma
+- ✅ Pantalla de Login con autenticación social
+- 🔄 En desarrollo: Guías de primeros auxilios
+- 📋 Planificado: Sistema de citas médicas
+- 📋 Planificado: Consultas virtuales
 
 
 
 ### 👨‍💻 Autor
 
 Desarrollado por **ZeroGravity**.
+
+---
+
+**SikaCare no compite con el sistema público, lo complementa y potencia, acercando el conocimiento médico al hogar y convirtiendo la incertidumbre en acción. Apostar por SikaCare es apostar por un país más preparado, seguro y equitativo en el acceso a la salud.**
 
 
