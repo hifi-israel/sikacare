@@ -8,9 +8,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,35 +27,24 @@ import sikacore.composeapp.generated.resources.google_logo
 import sikacore.composeapp.generated.resources.facebook_logo_vector
 import com.israeljuarez.sikacorekmp.getPlatform
 
-
-
-/**
- * Pantalla de Login compartida para Android, iOS y Desktop.
- * - Fondo azul #89C1EA en toda la pantalla
- * - Contenedor blanco con parte superior redondeada dibujado con Canvas
- * - Animación: el contenedor (y su contenido) suben desde abajo usando animateDpAsState
- * - Solo UI (sin lógica real).
- */
 @Composable
-fun LoginScreen(
-    onNavigateToRegister: () -> Unit = {},
-    onNavigateToForgotPassword: () -> Unit = {}
+fun RegisterScreen(
+    onNavigateToLogin: () -> Unit = {}
 ) {
     val backgroundBlue = Color(0xFF89C1EA)
     var isVisible by remember { mutableStateOf(false) }
 
     val containerTargetOffset: Dp = 0.dp
-    val containerHiddenOffset: Dp = 600.dp // fuera de pantalla
+    val containerHiddenOffset: Dp = 600.dp
 
     val offsetY by androidx.compose.animation.core.animateDpAsState(
         targetValue = if (isVisible) containerTargetOffset else containerHiddenOffset,
         animationSpec = tween(durationMillis = 600, easing = FastOutSlowInEasing),
-        label = "loginOffset"
+        label = "registerOffset"
     )
 
     LaunchedEffect(Unit) { }
 
-    // Detección simple de Desktop (JVM) usando Platform
     val isDesktop = remember { getPlatform().name.startsWith("Java") }
 
     Box(
@@ -66,12 +53,10 @@ fun LoginScreen(
             .background(backgroundBlue)
     ) {
         if (isDesktop) {
-            // Desktop: contenedor centrado, tamaño uniforme ~60% del lado menor, esquinas redondeadas arriba y abajo.
             BoxWithConstraints(Modifier.fillMaxSize()) {
                 val side = (if (maxWidth < maxHeight) maxWidth else maxHeight) * 0.8f
 
-                // Forma blanca animada (cuadro centrado)
-                CurvedContainerCanvas(
+                CurvedContainerCanvasRegister(
                     modifier = Modifier
                         .size(side)
                         .align(Alignment.Center)
@@ -79,18 +64,17 @@ fun LoginScreen(
                     bothRounded = true
                 )
 
-                // Contenido del login encima de la forma, mismo tamaño y animación
-                LoginContent(
+                RegisterContent(
                     modifier = Modifier
                         .size(side)
                         .align(Alignment.Center)
                         .offset(y = offsetY)
-                        .padding(horizontal = 24.dp, vertical = 16.dp)
+                        .padding(horizontal = 24.dp, vertical = 16.dp),
+                    onNavigateToLogin = onNavigateToLogin
                 )
             }
         } else {
-            // Android/iOS: comportamiento previo (anclado abajo, 88% de alto, solo esquina superior redondeada)
-            CurvedContainerCanvas(
+            CurvedContainerCanvasRegister(
                 modifier = Modifier
                     .fillMaxWidth()
                     .fillMaxHeight(0.88f)
@@ -99,20 +83,21 @@ fun LoginScreen(
                 bothRounded = false
             )
 
-            LoginContent(
+            RegisterContent(
                 modifier = Modifier
                     .fillMaxWidth()
                     .fillMaxHeight(0.88f)
                     .align(Alignment.BottomCenter)
                     .offset(y = offsetY)
-                    .padding(horizontal = 24.dp, vertical = 16.dp)
+                    .padding(horizontal = 24.dp, vertical = 16.dp),
+                onNavigateToLogin = onNavigateToLogin
             )
         }
     }
 }
 
 @Composable
-private fun CurvedContainerCanvas(modifier: Modifier = Modifier, bothRounded: Boolean) {
+private fun CurvedContainerCanvasRegister(modifier: Modifier = Modifier, bothRounded: Boolean) {
     Canvas(modifier = modifier) {
         val radius = 24.dp.toPx()
         val w = size.width
@@ -120,7 +105,6 @@ private fun CurvedContainerCanvas(modifier: Modifier = Modifier, bothRounded: Bo
 
         val path = Path().apply {
             if (bothRounded) {
-                // Esquinas redondeadas arriba y abajo
                 moveTo(0f, radius)
                 quadraticTo(0f, 0f, radius, 0f)
                 lineTo(w - radius, 0f)
@@ -131,7 +115,6 @@ private fun CurvedContainerCanvas(modifier: Modifier = Modifier, bothRounded: Bo
                 quadraticTo(0f, h, 0f, h - radius)
                 close()
             } else {
-                // Solo esquinas superiores redondeadas (comportamiento móvil previo)
                 moveTo(0f, radius)
                 quadraticTo(0f, 0f, radius, 0f)
                 lineTo(w - radius, 0f)
@@ -142,17 +125,18 @@ private fun CurvedContainerCanvas(modifier: Modifier = Modifier, bothRounded: Bo
             }
         }
 
-        drawPath(
-            path = path,
-            color = Color.White,
-            style = Fill
-        )
+        drawPath(path = path, color = Color.White, style = Fill)
     }
 }
 
 @Composable
-private fun LoginContent(modifier: Modifier = Modifier) {
+private fun RegisterContent(
+    modifier: Modifier = Modifier,
+    onNavigateToLogin: () -> Unit
+) {
+    var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
+    var phone by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
 
@@ -162,85 +146,88 @@ private fun LoginContent(modifier: Modifier = Modifier) {
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Spacer(Modifier.height(8.dp))
-
+        Text(text = "Crear cuenta", style = MaterialTheme.typography.headlineMedium)
         Text(
-            text = "Bienvenido",
-            style = MaterialTheme.typography.headlineMedium
-        )
-        Text(
-            text = "Inicia sesión para continuar",
+            text = "Completa tus datos para registrarte",
             style = MaterialTheme.typography.bodyMedium,
             color = Color(0xFF475569)
         )
 
-        // Campos (Material 3) con tamaños más compactos y tipos de teclado
-        androidx.compose.material3.OutlinedTextField(
+        OutlinedTextField(
+            value = name,
+            onValueChange = { name = it },
+            label = { Text("Nombre") },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth().height(60.dp)
+        )
+
+        OutlinedTextField(
             value = email,
             onValueChange = { email = it },
             label = { Text("Email") },
             singleLine = true,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(60.dp),
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Email
-            )
+            modifier = Modifier.fillMaxWidth().height(60.dp),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
         )
+
+        // Teléfono Nicaragua: 8 dígitos numéricos
+        OutlinedTextField(
+            value = phone,
+            onValueChange = { raw ->
+                val filtered = raw.filter { it.isDigit() }.take(8)
+                phone = filtered
+            },
+            label = { Text("Número telefónico (8 dígitos)") },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth().height(60.dp),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+        )
+
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
             label = { Text("Contraseña") },
             singleLine = true,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(62.dp),
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Password
-            ),
-            visualTransformation = if (passwordVisible) androidx.compose.ui.text.input.VisualTransformation.None else androidx.compose.ui.text.input.PasswordVisualTransformation(),
+            modifier = Modifier.fillMaxWidth().height(62.dp),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             trailingIcon = {
-                // Solo diseño: botón de ojo para mostrar/ocultar contraseña
-                androidx.compose.material3.TextButton(onClick = { passwordVisible = !passwordVisible }) {
+                TextButton(onClick = { passwordVisible = !passwordVisible }) {
                     Text(if (passwordVisible) "Ocultar" else "Mostrar")
                 }
             }
         )
 
-        // Enlace para recuperar contraseña
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-            androidx.compose.material3.TextButton(onClick = {  }) {
-                Text("¿Olvidaste tu contraseña?")
-            }
+        Button(onClick = { /* TODO: Registrar */ }, modifier = Modifier.fillMaxWidth().height(48.dp)) {
+            Text("Regístrate")
         }
 
-        androidx.compose.material3.Button(
-            onClick = {},
-            modifier = Modifier.fillMaxWidth().height(48.dp)
+        // Enlace a Login
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("Ingresar")
+            Text("¿Ya tienes una cuenta? ")
+            TextButton(onClick = { onNavigateToLogin() }) { Text("Inicia sesión") }
         }
 
-        // Separador
+        // Separador y botones sociales
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            androidx.compose.material3.HorizontalDivider(Modifier.weight(1f))
+            HorizontalDivider(Modifier.weight(1f))
             Text("  o continuar con  ", color = Color(0xFF64748B))
-            androidx.compose.material3.HorizontalDivider(Modifier.weight(1f))
+            HorizontalDivider(Modifier.weight(1f))
         }
 
-        // Botones sociales (uno debajo del otro, mismo tamaño). Primero Facebook, luego Google.
         Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            // Facebook
             val fbBlue = Color(0xFF1877F2)
-            androidx.compose.material3.Button(
+            Button(
                 onClick = { },
                 modifier = Modifier.fillMaxWidth().height(48.dp),
-                colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                    containerColor = fbBlue,
-                    contentColor = Color.White
-                )
+                colors = ButtonDefaults.buttonColors(containerColor = fbBlue, contentColor = Color.White)
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Image(
@@ -253,11 +240,7 @@ private fun LoginContent(modifier: Modifier = Modifier) {
                 }
             }
 
-            // Google (estilo claro con borde)
-            androidx.compose.material3.OutlinedButton(
-                onClick = { },
-                modifier = Modifier.fillMaxWidth().height(48.dp)
-            ) {
+            OutlinedButton(onClick = { }, modifier = Modifier.fillMaxWidth().height(48.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Image(
                         painter = painterResource(Res.drawable.google_logo),
@@ -267,18 +250,6 @@ private fun LoginContent(modifier: Modifier = Modifier) {
                     Spacer(Modifier.width(12.dp))
                     Text("Continuar con Google")
                 }
-            }
-        }
-
-        // Enlace a registro
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text("¿No tienes una cuenta? ")
-            androidx.compose.material3.TextButton(onClick = {  }) {
-                Text("Regístrate")
             }
         }
 

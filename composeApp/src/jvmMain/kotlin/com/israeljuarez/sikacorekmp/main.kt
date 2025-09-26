@@ -32,11 +32,20 @@ fun main() = application {
         showSplash = false
     }
 
+    // Tamaño mínimo de la ventana (solo Escritorio). Modifícalo aquí:
+    // Ejemplo: ancho 900.dp, alto 600.dp
+    // El tamaño mínimo se configura dentro del contenido de la ventana (ver LaunchedEffect más abajo)
     Window(
         onCloseRequest = ::exitApplication,
         title = "sikacore",
-        icon = painterResource(Res.drawable.logo),
+        icon = painterResource(Res.drawable.logo)
     ) {
+        // Establece tamaño mínimo de la ventana (solo Escritorio). Modifícalo aquí:
+        // Valores en píxeles (AWT). Ejemplo: 900x600. Ajusta según necesites.
+        LaunchedEffect(Unit) {
+            window.minimumSize = java.awt.Dimension(600, 500)
+        }
+
         if (showSplash) {
             DesktopSplash()
         } else {
