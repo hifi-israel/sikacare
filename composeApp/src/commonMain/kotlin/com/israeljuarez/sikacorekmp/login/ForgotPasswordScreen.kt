@@ -6,9 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -21,37 +19,26 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.israeljuarez.sikacorekmp.getPlatform
 
-
-
-/**
- * Pantalla de Login compartida para Android, iOS y Desktop.
- * - Fondo azul #89C1EA en toda la pantalla
- * - Contenedor blanco con parte superior redondeada dibujado con Canvas
- * - Animación: el contenedor (y su contenido) suben desde abajo usando animateDpAsState
- * - Solo UI (sin lógica real).
- */
 @Composable
-fun LoginScreen(
-    onNavigateToRegister: () -> Unit = {},
-    onNavigateToForgotPassword: () -> Unit = {}
+fun ForgotPasswordScreen(
+    onNavigateToLogin: () -> Unit = {}
 ) {
     val backgroundBlue = Color(0xFF89C1EA)
     var isVisible by remember { mutableStateOf(false) }
 
     val containerTargetOffset: Dp = 0.dp
-    val containerHiddenOffset: Dp = 600.dp // fuera de pantalla
+    val containerHiddenOffset: Dp = 600.dp
 
     val offsetY by androidx.compose.animation.core.animateDpAsState(
         targetValue = if (isVisible) containerTargetOffset else containerHiddenOffset,
         animationSpec = tween(durationMillis = 600, easing = FastOutSlowInEasing),
-        label = "loginOffset"
+        label = "forgotPasswordOffset"
     )
 
     LaunchedEffect(Unit) { 
         isVisible = true
     }
 
-    // Detección simple de Desktop (JVM) usando Platform
     val isDesktop = remember { getPlatform().name.startsWith("Java") }
 
     Box(
@@ -60,11 +47,9 @@ fun LoginScreen(
             .background(backgroundBlue)
     ) {
         if (isDesktop) {
-            // Desktop: contenedor centrado, tamaño uniforme ~60% del lado menor, esquinas redondeadas arriba y abajo.
             BoxWithConstraints(Modifier.fillMaxSize()) {
                 val side = (if (maxWidth < maxHeight) maxWidth else maxHeight) * 0.8f
 
-                // Forma blanca animada (cuadro centrado)
                 SharedCurvedContainerCanvas(
                     modifier = Modifier
                         .size(side)
@@ -73,19 +58,16 @@ fun LoginScreen(
                     bothRounded = true
                 )
 
-                // Contenido del login encima de la forma, mismo tamaño y animación
-                LoginContent(
+                ForgotPasswordContent(
                     modifier = Modifier
                         .size(side)
                         .align(Alignment.Center)
                         .offset(y = offsetY)
                         .padding(horizontal = 24.dp, vertical = 16.dp),
-                    onNavigateToRegister = onNavigateToRegister,
-                    onNavigateToForgotPassword = onNavigateToForgotPassword
+                    onNavigateToLogin = onNavigateToLogin
                 )
             }
         } else {
-            // Android/iOS: comportamiento previo (anclado abajo, 88% de alto, solo esquina superior redondeada)
             SharedCurvedContainerCanvas(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -95,30 +77,29 @@ fun LoginScreen(
                 bothRounded = false
             )
 
-            LoginContent(
+            ForgotPasswordContent(
                 modifier = Modifier
                     .fillMaxWidth()
                     .fillMaxHeight(0.88f)
                     .align(Alignment.BottomCenter)
                     .offset(y = offsetY)
                     .padding(horizontal = 24.dp, vertical = 16.dp),
-                onNavigateToRegister = onNavigateToRegister,
-                onNavigateToForgotPassword = onNavigateToForgotPassword
+                onNavigateToLogin = onNavigateToLogin
             )
         }
     }
 }
 
-
 @Composable
-private fun LoginContent(
+private fun ForgotPasswordContent(
     modifier: Modifier = Modifier,
-    onNavigateToRegister: () -> Unit,
-    onNavigateToForgotPassword: () -> Unit
+    onNavigateToLogin: () -> Unit
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
+    var confirmPasswordVisible by remember { mutableStateOf(false) }
 
     Column(
         modifier = modifier.verticalScroll(rememberScrollState()),
@@ -126,77 +107,78 @@ private fun LoginContent(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Spacer(Modifier.height(8.dp))
-
+        
         Text(
-            text = "Bienvenido",
+            text = "Recuperar contraseña",
             style = MaterialTheme.typography.headlineMedium
         )
         Text(
-            text = "Inicia sesión para continuar",
+            text = "Ingresa tu email y establece una nueva contraseña",
             style = MaterialTheme.typography.bodyMedium,
             color = Color(0xFF475569)
         )
 
-        // Campos (Material 3) con tamaños más compactos y tipos de teclado
+        // Campo de email
         OutlinedTextField(
             value = email,
             onValueChange = { email = it },
             label = { Text("Email") },
             singleLine = true,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(60.dp),
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Email
-            )
+            modifier = Modifier.fillMaxWidth().height(60.dp),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
         )
+
+        // Campo de nueva contraseña
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
-            label = { Text("Contraseña") },
+            label = { Text("Nueva contraseña") },
             singleLine = true,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(62.dp),
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Password
-            ),
+            modifier = Modifier.fillMaxWidth().height(62.dp),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             trailingIcon = {
-                // Solo diseño: botón de ojo para mostrar/ocultar contraseña
-                androidx.compose.material3.TextButton(onClick = { passwordVisible = !passwordVisible }) {
+                TextButton(onClick = { passwordVisible = !passwordVisible }) {
                     Text(if (passwordVisible) "Ocultar" else "Mostrar")
                 }
             }
         )
 
-        // Enlace para recuperar contraseña
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-            androidx.compose.material3.TextButton(onClick = { onNavigateToForgotPassword() }) {
-                Text("¿Olvidaste tu contraseña?")
+        // Campo de confirmar contraseña
+        OutlinedTextField(
+            value = confirmPassword,
+            onValueChange = { confirmPassword = it },
+            label = { Text("Confirmar contraseña") },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth().height(62.dp),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+            visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+            trailingIcon = {
+                TextButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
+                    Text(if (confirmPasswordVisible) "Ocultar" else "Mostrar")
+                }
             }
-        }
+        )
 
-        androidx.compose.material3.Button(
-            onClick = {},
+        // Botón de reestablecer contraseña
+        Button(
+            onClick = { 
+                // TODO: Implementar lógica de reestablecimiento
+            },
             modifier = Modifier.fillMaxWidth().height(48.dp)
         ) {
-            Text("Ingresar")
+            Text("Reestablecer contraseña")
         }
 
-        // Separador y botones sociales
-        SocialSeparator()
-        SocialButtons()
-
-        // Enlace a registro
+        // Enlace de regreso a Login
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text("¿No tienes una cuenta? ")
-            androidx.compose.material3.TextButton(onClick = { onNavigateToRegister() }) {
-                Text("Regístrate")
+            Text("¿Recordaste tu contraseña? ")
+            TextButton(onClick = { onNavigateToLogin() }) { 
+                Text("Inicia sesión") 
             }
         }
 

@@ -9,6 +9,7 @@ import androidx.compose.runtime.setValue
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import com.israeljuarez.sikacorekmp.login.LoginScreen
 import com.israeljuarez.sikacorekmp.login.RegisterScreen
+import com.israeljuarez.sikacorekmp.login.ForgotPasswordScreen
 
 @Composable
 @Preview
@@ -18,13 +19,16 @@ fun App() {
         when (current) {
             AppScreen.Login -> LoginScreen(
                 onNavigateToRegister = { current = AppScreen.Register },
-                onNavigateToForgotPassword = { /* TODO: abrir Restablecer contraseña */ }
+                onNavigateToForgotPassword = { current = AppScreen.ForgotPassword }
             )
             AppScreen.Register -> RegisterScreen(
+                onNavigateToLogin = { current = AppScreen.Login }
+            )
+            AppScreen.ForgotPassword -> ForgotPasswordScreen(
                 onNavigateToLogin = { current = AppScreen.Login }
             )
         }
     }
 }
 
-private enum class AppScreen { Login, Register }
+private enum class AppScreen { Login, Register, ForgotPassword }
