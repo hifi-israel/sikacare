@@ -63,7 +63,7 @@ Esta sección documenta en español cómo implementamos y configuramos la pantal
 - Dependencia agregada: `androidx.core:core-splashscreen:1.0.1`.
 - Tema de Splash: definido en `composeApp/src/androidMain/res/values/themes.xml` como `Theme.App.Splash`, heredando de `Theme.SplashScreen`.
     - `windowSplashScreenBackground` → `@color/splash_background` (#89C1EA) definido en `res/values/colors.xml`.
-    - `windowSplashScreenAnimatedIcon` → `@drawable/logo` (coloca tu `logo.png` en `composeApp/src/androidMain/res/drawable/` con ese nombre).
+    - `windowSplashScreenAnimatedIcon` → `@drawable/logo` (coloca tú `logo.png` en `composeApp/src/androidMain/res/drawable/` con ese nombre).
     - `postSplashScreenTheme` → `@style/Theme.App`.
 - Manifest: `MainActivity` usa el tema `Theme.App.Splash` para que el sistema muestre el splash al lanzar.
 - Código: en `MainActivity.kt` se invoca `installSplashScreen()` al inicio de `onCreate()`.
