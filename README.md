@@ -57,7 +57,7 @@ Este proyecto es una implementación con Kotlin Multiplatform (KMP) de una aplic
 ![Kotlin](https://img.shields.io/badge/Kotlin-Multiplatform-7F52FF?style=for-the-badge&logo=kotlin&logoColor=white)
 ![Compose](https://img.shields.io/badge/Compose-Multiplatform-4285F4?style=for-the-badge&logo=jetpackcompose&logoColor=white)
 
-### Aprende a PROGRAMAR aplicaciones en Kotlin Multiplataforma
+### Aplicaciones en Kotlin Multiplataforma
 
 **Temario:**
 - Capítulo 1 - Configuración del proyecto KMP
