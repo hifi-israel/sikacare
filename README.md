@@ -69,26 +69,74 @@ SikaCare es una aplicación móvil de inteligencia artificial creada para guiar 
 - **Accesibilidad**: Modo lectura en voz alta para personas con discapacidad visual
 - **Recordatorios de Salud**: Notificaciones para medicamentos y citas
 - **Registro de Salud**: Calcula el IMC y recibe recomendaciones personalizadas
-- **Calendario de Ferias y Jornadas**: Mantente conectado con actividades preventivas del MINSA
+### 📱 Guía de Usuario Rápida
+
+**Primeros Pasos:**
+1. Descarga e instala la aplicación SikaCare desde tu tienda de aplicaciones
+2. Abre la app y permite los permisos necesarios para un funcionamiento óptimo
+3. Regístrate o inicia sesión para acceder a todas las funcionalidades
+
+**Uso Básico:**
+- **Emergencias**: Toca "Primeros Auxilios" para guías visuales paso a paso
+- **Citas**: Usa "Agendar Cita" para solicitar turnos médicos sin llamadas
+- **Consultas**: Accede a "Consultas Virtuales" para atención remota
+- **Salud**: Registra tu peso y altura en "Mi Salud" para calcular tu IMC
+- **Recordatorios**: Configura notificaciones en "Recordatorios" para medicamentos y citas
+- **Accesibilidad**: Activa el modo de lectura en voz alta en la configuración
+
+**Navegación:**
+- Desliza hacia la izquierda/derecha para navegar entre secciones
+- Usa el menú inferior para acceso rápido a funciones principales
+- Consulta "Noticias y Consejos" para información actualizada de salud
 
 ### 🏥 Misión
 
-La app no gestiona expedientes clínicos profesionales, pero se inspira en los lineamientos de la Normativa 004 del MINSA, garantizando que la información proporcionada sea confiable y coherente con los protocolos de salud. SikaCare es una herramienta de apoyo accesible, práctica y segura para actuar con rapidez ante emergencias.
+SikaCare no compite con el sistema público, lo complementa y lo potencia, acerca el conocimiento médico al hogar y convierte la incertidumbre en acción. Apostar por SikaCare es apostar por un país más preparado, más seguro y con mayor equidad en el acceso a la salud.
 
-Más allá de primeros auxilios, SikaCare promueve la prevención y el acceso a la salud para todos, apoyando los ejes del Plan Nacional de Lucha contra la Pobreza y el Desarrollo Humano. Utiliza tecnología innovadora y fomenta la formación comunitaria para salvar vidas y reducir riesgos en poblaciones vulnerables.
+Desarrollado por **ZeroGravity**, SikaCare se convierte en una herramienta esencial para la comunidad.
 
 ### 🛠 Instalación
 
 **Requisitos:**
-- Kotlin 2.0.21+
-- Compose Multiplatform 1.7.0+
-- IDE compatible con KMP: Android Studio o Fleet
-- Conocimientos básicos de Kotlin y KMP
+- **Sistema Operativo**: Windows 10/11, macOS 12+, o Linux (Ubuntu 20.04+)
+- **Memoria RAM**: 8 GB mínimo, 16 GB recomendado
+- **Espacio en Disco**: 8 GB mínimo para Android Studio + SDKs
+- **Java Development Kit (JDK)**: JDK 11 o superior (JDK 17 recomendado)
+- **Gradle**: 8.14.3 (incluido en el proyecto)
+- **IDE**: IntelliJ IDEA 2025.2.2 (Ultimate Edition) con soporte para Kotlin Multiplatform
+**Dependencias Principales:**
+- **Kotlin Multiplatform**: 2.2.20
+- **Compose Multiplatform**: 1.9.0
+- **Android Gradle Plugin**: 8.12.0
+- **Android Compile SDK**: 36
+- **Android Minimum SDK**: 24
+- **AndroidX Activity Compose**: 1.11.0
+- **AndroidX Lifecycle**: 2.9.4
+- **Kotlinx Coroutines**: 1.10.2
 
-**Configuración:**
-1. Abre el proyecto en Android Studio
-2. Sincroniza el proyecto Gradle para descargar las dependencias
-3. Ejecuta la aplicación en tu plataforma preferida
+**Instalación y Configuración:**
+
+**Paso 1: Preparar el Entorno**
+1. Descarga e instala IntelliJ IDEA 2025.2.2 Ultimate Edition desde [jetbrains.com](https://www.jetbrains.com/idea/)
+2. Instala el JDK 17 desde [oracle.com](https://www.oracle.com/java/technologies/downloads/) o [adoptium.net](https://adoptium.net/)
+3. Verifica la instalación ejecutando `java -version` en la terminal
+
+**Paso 2: Configurar el Proyecto**
+1. Clona o descarga el repositorio del proyecto
+2. Abre IntelliJ IDEA y selecciona "Open" > "Open as Project"
+3. Navega hasta la carpeta del proyecto y selecciónala
+4. Espera a que Gradle sincronice automáticamente (puede tomar varios minutos)
+
+**Paso 3: Descargar Dependencias**
+1. Una vez abierto el proyecto, ve a "File" > "Project Structure"
+2. Asegúrate de que el JDK configurado sea el JDK 17
+3. Ve a "File" > "Sync Project with Gradle Files" para descargar todas las dependencias
+4. Si es necesario, ejecuta `./gradlew build` (Linux/macOS) o `.\gradlew.bat build` (Windows)
+
+**Paso 4: Ejecutar la Aplicación**
+1. Para **Android**: Usa el botón "Run" en la barra superior o ejecuta `./gradlew :composeApp:assembleDebug`
+2. Para **Desktop (JVM)**: Ejecuta `./gradlew :composeApp:run`
+3. Para **iOS**: Abre el directorio `iosApp` en Xcode y ejecútalo desde allí
 
 ### ✏️ Estructura del proyecto
 
@@ -140,7 +188,7 @@ Actualmente, el proyecto incluye la implementación del Splash Screen y la panta
 
 
 
-### 👨‍💻 Autor
+### 👨‍💻 Equipo de Desarrollo
 
 Desarrollado por **ZeroGravity**.
 

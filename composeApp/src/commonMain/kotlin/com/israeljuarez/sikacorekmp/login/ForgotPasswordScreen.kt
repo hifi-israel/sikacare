@@ -307,7 +307,7 @@ private fun ForgotPasswordContent(
                 verificationCode.isNotEmpty()
             },
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF89C1EA),
+                containerColor = Color(0xFF1877F2),
                 contentColor = Color.White
             )
         ) {

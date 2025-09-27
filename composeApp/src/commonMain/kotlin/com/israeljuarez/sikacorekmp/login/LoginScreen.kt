@@ -181,7 +181,7 @@ private fun LoginContent(
             onClick = {},
             modifier = Modifier.fillMaxWidth().height(48.dp),
             colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF89C1EA),
+                containerColor = Color(0xFF1877F2),
                 contentColor = Color.White
             )
         ) {

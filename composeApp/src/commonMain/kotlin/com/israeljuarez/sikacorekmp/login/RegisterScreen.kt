@@ -323,7 +323,7 @@ private fun RegisterContent(
                 Text(
                     text = "Código enviado a: $emailLocked",
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color(0xFF64748B),
+                    color = Color(0xFF4CAF50),
                     modifier = Modifier.padding(start = 16.dp, top = 4.dp)
                 )
             }
@@ -353,7 +353,7 @@ private fun RegisterContent(
                 verificationCode.isNotEmpty()
             },
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF89C1EA),
+                containerColor = Color(0xFF1877F2),
                 contentColor = Color.White
             )
         ) {
