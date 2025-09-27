@@ -179,7 +179,11 @@ private fun LoginContent(
 
         androidx.compose.material3.Button(
             onClick = {},
-            modifier = Modifier.fillMaxWidth().height(48.dp)
+            modifier = Modifier.fillMaxWidth().height(48.dp),
+            colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                containerColor = Color(0xFF89C1EA),
+                contentColor = Color.White
+            )
         ) {
             Text("Ingresar")
         }

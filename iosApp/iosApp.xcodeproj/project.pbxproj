@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXFileReference section */
-		68A8F0D91C505528A4FAE8EE /* sikacore.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = sikacore.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		68A8F0D91C505528A4FAE8EE /* SikaCare.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SikaCare.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -59,7 +59,7 @@
 		735FDA37899314BBF28B8E17 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				68A8F0D91C505528A4FAE8EE /* sikacore.app */,
+				68A8F0D91C505528A4FAE8EE /* SikaCare.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -87,7 +87,7 @@
 			packageProductDependencies = (
 			);
 			productName = iosApp;
-			productReference = 68A8F0D91C505528A4FAE8EE /* sikacore.app */;
+			productReference = 68A8F0D91C505528A4FAE8EE /* SikaCare.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */

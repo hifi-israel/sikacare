@@ -102,7 +102,6 @@ private fun ForgotPasswordContent(
     var passwordVisible by remember { mutableStateOf(false) }
     var confirmPasswordVisible by remember { mutableStateOf(false) }
     var showVerificationCode by remember { mutableStateOf(false) }
-    var emailVerified by remember { mutableStateOf(false) }
     var emailLocked by remember { mutableStateOf("") }
     
     // Validaciones en tiempo real
@@ -306,7 +305,11 @@ private fun ForgotPasswordContent(
                 isValidEmail(email) && passwordValidation.state == ValidationState.VALID && passwordMatchValidation.state == ValidationState.VALID
             } else {
                 verificationCode.isNotEmpty()
-            }
+            },
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFF89C1EA),
+                contentColor = Color.White
+            )
         ) {
             Text(if (showVerificationCode) "Verificar código y reestablecer" else "Enviar código de verificación")
         }

@@ -37,7 +37,7 @@ fun main() = application {
     // El tamaño mínimo se configura dentro del contenido de la ventana (ver LaunchedEffect más abajo)
     Window(
         onCloseRequest = ::exitApplication,
-        title = "sikacore",
+        title = "SikaCare",
         icon = painterResource(Res.drawable.logo)
     ) {
         // Establece tamaño mínimo de la ventana (solo Escritorio). Modifícalo aquí:
