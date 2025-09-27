@@ -10,13 +10,21 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 import com.israeljuarez.sikacorekmp.login.LoginScreen
 import com.israeljuarez.sikacorekmp.login.RegisterScreen
 import com.israeljuarez.sikacorekmp.login.ForgotPasswordScreen
+import com.israeljuarez.sikacorekmp.splash.SplashScreen
+import com.israeljuarez.sikacorekmp.onboarding.OnboardingScreen
+import com.israeljuarez.sikacorekmp.home.HomeScreen
 
 @Composable
 @Preview
 fun App() {
     MaterialTheme {
-        var current by remember { mutableStateOf(AppScreen.Login) }
+        var current by remember { mutableStateOf(AppScreen.Splash) }
         when (current) {
+            AppScreen.Splash -> SplashScreen(
+                onNavigateToLogin = { current = AppScreen.Login },
+                onNavigateToOnboarding = { current = AppScreen.Onboarding },
+                onNavigateToHome = { current = AppScreen.Home }
+            )
             AppScreen.Login -> LoginScreen(
                 onNavigateToRegister = { current = AppScreen.Register },
                 onNavigateToForgotPassword = { current = AppScreen.ForgotPassword }
@@ -27,8 +35,17 @@ fun App() {
             AppScreen.ForgotPassword -> ForgotPasswordScreen(
                 onNavigateToLogin = { current = AppScreen.Login }
             )
+            AppScreen.Onboarding -> OnboardingScreen(
+                initialEmail = "",
+                onResendVerification = { /* TODO */ },
+                onRefreshConfirmation = { /* TODO */ },
+                onStart = { _, _ -> current = AppScreen.Home }
+            )
+            AppScreen.Home -> HomeScreen(
+                onLogout = { current = AppScreen.Login }
+            )
         }
     }
 }
 
-private enum class AppScreen { Login, Register, ForgotPassword }
+private enum class AppScreen { Splash, Login, Register, ForgotPassword, Onboarding, Home }

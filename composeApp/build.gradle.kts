@@ -7,6 +7,8 @@ plugins {
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.composeHotReload)
+    alias(libs.plugins.buildKonfig)
+    alias(libs.plugins.kotlinSerialization)
 }
 
 kotlin {
@@ -29,11 +31,6 @@ kotlin {
     jvm()
 
     sourceSets {
-        androidMain.dependencies {
-            implementation(compose.preview)
-            implementation(libs.androidx.activity.compose)
-            implementation("androidx.core:core-splashscreen:1.0.1")
-        }
         commonMain.dependencies {
             implementation(compose.runtime)
             implementation(compose.foundation)
@@ -43,13 +40,32 @@ kotlin {
             implementation(compose.components.uiToolingPreview)
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
+            // Supabase (Auth + ComposeAuth)
+            implementation(libs.supabaseAuthKt)
+            implementation(libs.supabaseComposeAuth)
+            implementation(libs.supabasePostgrest)
+            // Coroutines comunes
+            implementation(libs.kotlinxCoroutinesCore)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
         }
+        androidMain.dependencies {
+            implementation(compose.preview)
+            implementation(libs.androidx.activity.compose)
+            implementation("androidx.core:core-splashscreen:1.0.1")
+            // Ktor engine for Android/JVM
+            implementation(libs.ktorClientOkhttp)
+        }
+        iosMain.dependencies {
+            // Ktor engine for iOS
+            implementation(libs.ktorClientDarwin)
+        }
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutinesSwing)
+            // Ktor engine for Desktop JVM
+            implementation(libs.ktorClientOkhttp)
         }
     }
 }
@@ -78,6 +94,28 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
+    }
+}
+
+// BuildKonfig: expose config values to commonMain
+buildkonfig {
+    packageName = "com.israeljuarez.sikacorekmp.config"
+    defaultConfigs {
+        buildConfigField(
+            com.codingfeline.buildkonfig.compiler.FieldSpec.Type.STRING,
+            "SUPABASE_URL",
+            providers.gradleProperty("SUPABASE_URL").orNull ?: ""
+        )
+        buildConfigField(
+            com.codingfeline.buildkonfig.compiler.FieldSpec.Type.STRING,
+            "SUPABASE_ANON_KEY",
+            providers.gradleProperty("SUPABASE_ANON_KEY").orNull ?: ""
+        )
+        buildConfigField(
+            com.codingfeline.buildkonfig.compiler.FieldSpec.Type.STRING,
+            "WEB_GOOGLE_CLIENT_ID",
+            providers.gradleProperty("WEB_GOOGLE_CLIENT_ID").orNull ?: ""
+        )
     }
 }
 
