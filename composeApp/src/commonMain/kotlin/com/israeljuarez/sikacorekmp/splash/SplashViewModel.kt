@@ -1,6 +1,7 @@
 package com.israeljuarez.sikacorekmp.splash
 
 import com.israeljuarez.sikacorekmp.auth.AuthRepository
+import com.israeljuarez.sikacorekmp.profile.ProfileRepository
 
 class SplashViewModel(
     private val authRepository: AuthRepository = AuthRepository()
@@ -14,7 +15,12 @@ class SplashViewModel(
     suspend fun resolveDestination(): Destination {
         // Cargar sesión almacenada si existe
         authRepository.loadFromStorage()
-        // TODO: ensureProfile() y leer is_onboarding_seen para decidir entre Onboarding/Home.
-        return if (authRepository.hasActiveSession()) Destination.Home else Destination.Login
+
+        if (!authRepository.hasActiveSession()) return Destination.Login
+
+        // Leer perfil para decidir onboarding/home
+        val profileRepo = ProfileRepository()
+        val profile = profileRepo.getProfile()
+        return if (profile?.is_onboarding_seen == true) Destination.Home else Destination.Onboarding
     }
 }

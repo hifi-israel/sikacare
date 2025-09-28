@@ -3,6 +3,7 @@ package com.israeljuarez.sikacorekmp.core
 import com.israeljuarez.sikacorekmp.config.BuildKonfig
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.createSupabaseClient
+import io.github.jan.supabase.auth.Auth
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.Postgrest
 import io.github.jan.supabase.postgrest.postgrest
@@ -14,9 +15,11 @@ object SupabaseProvider {
             supabaseKey = BuildKonfig.SUPABASE_ANON_KEY
         ) {
             // Plugins
-            install(io.github.jan.supabase.auth.Auth)
+            install(Auth) {
+                host = "auth-callback"
+                scheme = "sikacare"
+            }
             install(Postgrest)
-            // TODO: instalar ComposeAuth (Google) cuando conectemos OAuth
         }
     }
 }

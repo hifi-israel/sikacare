@@ -18,6 +18,9 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.israeljuarez.sikacorekmp.getPlatform
+import com.israeljuarez.sikacorekmp.auth.AuthRepository
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 
 @Composable
 fun ForgotPasswordScreen(
@@ -103,6 +106,8 @@ private fun ForgotPasswordContent(
     var confirmPasswordVisible by remember { mutableStateOf(false) }
     var showVerificationCode by remember { mutableStateOf(false) }
     var emailLocked by remember { mutableStateOf("") }
+    val scope = rememberCoroutineScope()
+    val repo = remember { AuthRepository() }
     
     // Validaciones en tiempo real
     val emailValidation = remember(email) {
@@ -261,57 +266,47 @@ private fun ForgotPasswordContent(
             }
         }
 
-        // Campo de código de verificación (solo visible después de enviar código)
+        // Segunda fase simplificada con enlace por email
         if (showVerificationCode) {
-            Column {
-                OutlinedTextField(
-                    value = verificationCode,
-                    onValueChange = { verificationCode = it },
-                    label = { Text("Código de verificación") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth().height(60.dp),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-                    placeholder = { Text("Ingresa el código enviado a $emailLocked") }
-                )
-                Text(
-                    text = "Código enviado a: $emailLocked",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color(0xFF64748B),
-                    modifier = Modifier.padding(start = 16.dp, top = 4.dp)
-                )
-            }
+            Text(
+                text = "Te enviamos un enlace para reestablecer tu contraseña a: $emailLocked",
+                style = MaterialTheme.typography.bodySmall,
+                color = Color(0xFF64748B)
+            )
         }
 
         // Botón de reestablecer contraseña
         Button(
-            onClick = { 
+            onClick = {
                 if (!showVerificationCode) {
-                    // Primera vez: enviar código de verificación
                     if (isValidEmail(email) && passwordValidation.state == ValidationState.VALID && passwordMatchValidation.state == ValidationState.VALID) {
-                        showVerificationCode = true
-                        emailLocked = email
-                        // TODO: Enviar código de verificación al email
+                        scope.launch {
+                            try {
+                                repo.resetPasswordForEmail(email)
+                                showVerificationCode = true
+                                emailLocked = email
+                            } catch (_: Throwable) {
+                                // TODO: mostrar error
+                            }
+                        }
                     }
                 } else {
-                    // Segunda vez: verificar código y reestablecer
-                    if (verificationCode.isNotEmpty()) {
-                        // TODO: Verificar código y proceder con reestablecimiento
-                        onNavigateToLogin()
-                    }
+                    // Ya confirmé (vía enlace) -> volvemos a Login
+                    onNavigateToLogin()
                 }
             },
             modifier = Modifier.fillMaxWidth().height(48.dp),
             enabled = if (!showVerificationCode) {
                 isValidEmail(email) && passwordValidation.state == ValidationState.VALID && passwordMatchValidation.state == ValidationState.VALID
             } else {
-                verificationCode.isNotEmpty()
+                true
             },
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color(0xFF1877F2),
                 contentColor = Color.White
             )
         ) {
-            Text(if (showVerificationCode) "Verificar código y reestablecer" else "Enviar código de verificación")
+            Text(if (showVerificationCode) "Ya confirmé" else "Enviar enlace de reestablecimiento")
         }
 
         // Enlace de regreso a Login

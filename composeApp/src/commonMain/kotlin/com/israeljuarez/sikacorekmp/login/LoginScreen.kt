@@ -5,6 +5,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -13,14 +14,17 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.israeljuarez.sikacorekmp.auth.AuthRepository
+import com.israeljuarez.sikacorekmp.auth.rememberGoogleAuthProvider
+import com.israeljuarez.sikacorekmp.core.SupabaseProvider
 import com.israeljuarez.sikacorekmp.getPlatform
-
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 
 
 /**
@@ -33,7 +37,8 @@ import com.israeljuarez.sikacorekmp.getPlatform
 @Composable
 fun LoginScreen(
     onNavigateToRegister: () -> Unit = {},
-    onNavigateToForgotPassword: () -> Unit = {}
+    onNavigateToForgotPassword: () -> Unit = {},
+    onLoginSuccess: () -> Unit = {}
 ) {
     val backgroundBlue = Color(0xFF89C1EA)
     var isVisible by remember { mutableStateOf(false) }
@@ -53,6 +58,7 @@ fun LoginScreen(
 
     // Detección simple de Desktop (JVM) usando Platform
     val isDesktop = remember { getPlatform().name.startsWith("Java") }
+    val scope = rememberCoroutineScope()
 
     Box(
         modifier = Modifier
@@ -81,7 +87,8 @@ fun LoginScreen(
                         .offset(y = offsetY)
                         .padding(horizontal = 24.dp, vertical = 16.dp),
                     onNavigateToRegister = onNavigateToRegister,
-                    onNavigateToForgotPassword = onNavigateToForgotPassword
+                    onNavigateToForgotPassword = onNavigateToForgotPassword,
+                    onLoginSuccess = onLoginSuccess
                 )
             }
         } else {
@@ -103,7 +110,8 @@ fun LoginScreen(
                     .offset(y = offsetY)
                     .padding(horizontal = 24.dp, vertical = 16.dp),
                 onNavigateToRegister = onNavigateToRegister,
-                onNavigateToForgotPassword = onNavigateToForgotPassword
+                onNavigateToForgotPassword = onNavigateToForgotPassword,
+                onLoginSuccess = onLoginSuccess
             )
         }
     }
@@ -114,11 +122,17 @@ fun LoginScreen(
 private fun LoginContent(
     modifier: Modifier = Modifier,
     onNavigateToRegister: () -> Unit,
-    onNavigateToForgotPassword: () -> Unit
+    onNavigateToForgotPassword: () -> Unit,
+    onLoginSuccess: () -> Unit
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+    val scope = rememberCoroutineScope()
+    val repo = remember { AuthRepository() }
+    val supabase = remember { SupabaseProvider.client }
+    val googleAuth = rememberGoogleAuthProvider()
 
     Column(
         modifier = modifier.verticalScroll(rememberScrollState()),
@@ -178,7 +192,17 @@ private fun LoginContent(
         }
 
         androidx.compose.material3.Button(
-            onClick = {},
+            onClick = {
+                scope.launch {
+                    try {
+                        errorMessage = null // Limpiar error previo
+                        repo.signInWithEmailPassword(email, password)
+                        onLoginSuccess()
+                    } catch (e: Throwable) {
+                        errorMessage = e.message ?: "Ocurrió un error inesperado"
+                    }
+                }
+            },
             modifier = Modifier.fillMaxWidth().height(48.dp),
             colors = androidx.compose.material3.ButtonDefaults.buttonColors(
                 containerColor = Color(0xFF1877F2),
@@ -188,9 +212,32 @@ private fun LoginContent(
             Text("Ingresar")
         }
 
+        errorMessage?.let {
+            Text(
+                text = it,
+                color = MaterialTheme.colors.error,
+                modifier = Modifier.padding(top = 8.dp)
+            )
+        }
+
         // Separador y botones sociales
         SocialSeparator()
-        SocialButtons()
+        SocialButtons(
+            onGoogleClick = {
+                scope.launch {
+                    try {
+                        val result = googleAuth.signInWithGoogle()
+                        if (result.isSuccess) {
+                            onLoginSuccess()
+                        } else {
+                            // TODO: mostrar error
+                        }
+                    } catch (e: Exception) {
+                        // TODO: mostrar error
+                    }
+                }
+            }
+        )
 
         // Enlace a registro
         Row(

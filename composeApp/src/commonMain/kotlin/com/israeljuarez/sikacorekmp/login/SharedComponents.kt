@@ -63,6 +63,7 @@ fun SharedCurvedContainerCanvas(modifier: Modifier = Modifier, bothRounded: Bool
  */
 @Composable
 fun SocialButtons(
+    actionText: String = "Continuar",
     onFacebookClick: () -> Unit = {},
     onGoogleClick: () -> Unit = {}
 ) {
@@ -81,7 +82,7 @@ fun SocialButtons(
                     modifier = Modifier.size(30.dp)
                 )
                 Spacer(Modifier.width(12.dp))
-                Text("Continuar con Facebook")
+                Text("$actionText con Facebook")
             }
         }
 
@@ -97,7 +98,7 @@ fun SocialButtons(
                     modifier = Modifier.size(25.dp)
                 )
                 Spacer(Modifier.width(12.dp))
-                Text("Continuar con Google")
+                Text("$actionText con Google")
             }
         }
     }

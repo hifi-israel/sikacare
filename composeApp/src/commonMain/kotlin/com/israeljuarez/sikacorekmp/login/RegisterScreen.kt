@@ -18,11 +18,18 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.israeljuarez.sikacorekmp.getPlatform
+import com.israeljuarez.sikacorekmp.auth.AuthRepository
+import com.israeljuarez.sikacorekmp.core.SupabaseProvider
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
+import io.github.jan.supabase.auth.auth
+import io.github.jan.supabase.auth.providers.Google
 
 @Composable
 fun RegisterScreen(
     onNavigateToLogin: () -> Unit = {},
-    onNavigateToRegister: () -> Unit = {}
+    onNavigateToRegister: () -> Unit = {},
+    onRegisteredConfirmed: () -> Unit = {}
 ) {
     val backgroundBlue = Color(0xFF89C1EA)
     var isVisible by remember { mutableStateOf(false) }
@@ -66,7 +73,8 @@ fun RegisterScreen(
                         .offset(y = offsetY)
                         .padding(horizontal = 24.dp, vertical = 16.dp),
                     onNavigateToLogin = onNavigateToLogin,
-                    onNavigateToRegister = onNavigateToRegister
+                    onNavigateToRegister = onNavigateToRegister,
+                    onRegisteredConfirmed = onRegisteredConfirmed
                 )
             }
         } else {
@@ -87,7 +95,8 @@ fun RegisterScreen(
                     .offset(y = offsetY)
                     .padding(horizontal = 24.dp, vertical = 16.dp),
                 onNavigateToLogin = onNavigateToLogin,
-                onNavigateToRegister = onNavigateToRegister
+                onNavigateToRegister = onNavigateToRegister,
+                onRegisteredConfirmed = onRegisteredConfirmed
             )
         }
     }
@@ -98,7 +107,8 @@ fun RegisterScreen(
 private fun RegisterContent(
     modifier: Modifier = Modifier,
     onNavigateToLogin: () -> Unit,
-    onNavigateToRegister: () -> Unit
+    onNavigateToRegister: () -> Unit,
+    onRegisteredConfirmed: () -> Unit
 ) {
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
@@ -110,6 +120,9 @@ private fun RegisterContent(
     var confirmPasswordVisible by remember { mutableStateOf(false) }
     var showVerificationCode by remember { mutableStateOf(false) }
     var emailLocked by remember { mutableStateOf("") }
+    val scope = rememberCoroutineScope()
+    val repo = remember { AuthRepository() }
+    val supabase = remember { SupabaseProvider.client }
     
     // Validaciones en tiempo real
     val emailValidation = remember(email) {
@@ -308,56 +321,46 @@ private fun RegisterContent(
             }
         }
 
-        // Campo de código de verificación (solo visible después de enviar código)
+        // Segunda fase: mostramos mensaje y botón "Ya confirmé" (conservando UI simple)
         if (showVerificationCode) {
-            Column {
-                OutlinedTextField(
-                    value = verificationCode,
-                    onValueChange = { verificationCode = it },
-                    label = { Text("Código de verificación") },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth().height(60.dp),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
-                    placeholder = { Text("Ingresa el código enviado a $emailLocked") }
-                )
-                Text(
-                    text = "Código enviado a: $emailLocked",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color(0xFF4CAF50),
-                    modifier = Modifier.padding(start = 16.dp, top = 4.dp)
-                )
-            }
+            Text(
+                text = "Te enviamos un enlace de verificación a: $emailLocked",
+                style = MaterialTheme.typography.bodySmall,
+                color = Color(0xFF4CAF50)
+            )
         }
 
         Button(
             onClick = { 
                 if (!showVerificationCode) {
-                    // Primera vez: enviar código de verificación
                     if (isValidEmail(email) && passwordValidation.state == ValidationState.VALID && passwordMatchValidation.state == ValidationState.VALID && phoneValidation.state == ValidationState.VALID) {
-                        showVerificationCode = true
-                        emailLocked = email
-                        // TODO: Enviar código de verificación al email
+                        scope.launch {
+                            try {
+                                repo.signUpWithEmailPassword(email, password)
+                                showVerificationCode = true
+                                emailLocked = email
+                            } catch (_: Throwable) {
+                                // TODO: mostrar error
+                            }
+                        }
                     }
                 } else {
-                    // Segunda vez: verificar código y registrar
-                    if (verificationCode.isNotEmpty()) {
-                        // TODO: Verificar código y proceder con registro
-                        onNavigateToRegister()
-                    }
+                    // Ya confirmé -> vamos a Splash para que resuelva sesión nueva
+                    onRegisteredConfirmed()
                 }
             }, 
             modifier = Modifier.fillMaxWidth().height(48.dp),
             enabled = if (!showVerificationCode) {
                 isValidEmail(email) && passwordValidation.state == ValidationState.VALID && passwordMatchValidation.state == ValidationState.VALID && phoneValidation.state == ValidationState.VALID
             } else {
-                verificationCode.isNotEmpty()
+                true
             },
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color(0xFF1877F2),
                 contentColor = Color.White
             )
         ) {
-            Text(if (showVerificationCode) "Verificar código y registrarse" else "Enviar código de verificación")
+            Text(if (showVerificationCode) "Ya confirmé" else "Enviar enlace de verificación")
         }
 
         // Enlace a Login
@@ -372,7 +375,19 @@ private fun RegisterContent(
 
         // Separador y botones sociales
         SocialSeparator()
-        SocialButtons()
+        SocialButtons(
+            actionText = "Regístrate",
+            onGoogleClick = {
+                scope.launch {
+                    try {
+                        supabase.auth.signInWith(Google)
+                        // El resultado llega por deeplink -> Splash decide Home/Onboarding
+                    } catch (_: Throwable) {
+                        // TODO: mostrar error
+                    }
+                }
+            }
+        )
 
         Spacer(Modifier.height(16.dp))
     }

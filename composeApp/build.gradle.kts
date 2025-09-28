@@ -40,10 +40,9 @@ kotlin {
             implementation(compose.components.uiToolingPreview)
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
-            // Supabase (Auth + ComposeAuth)
-            implementation(libs.supabaseAuthKt)
-            implementation(libs.supabaseComposeAuth)
-            implementation(libs.supabasePostgrest)
+            // Supabase (Auth) - dependencias directas para resolver problemas de classpath
+            implementation("io.github.jan-tennert.supabase:auth-kt:3.2.4")
+            implementation("io.github.jan-tennert.supabase:postgrest-kt:3.2.4")
             // Coroutines comunes
             implementation(libs.kotlinxCoroutinesCore)
         }
@@ -56,6 +55,10 @@ kotlin {
             implementation("androidx.core:core-splashscreen:1.0.1")
             // Ktor engine for Android/JVM
             implementation(libs.ktorClientOkhttp)
+            // Google Sign-In for Android
+            implementation("androidx.credentials:credentials:1.2.2")
+            implementation("com.google.android.libraries.identity.googleid:googleid:1.1.0")
+            implementation("androidx.credentials:credentials-play-services-auth:1.2.2")
         }
         iosMain.dependencies {
             // Ktor engine for iOS
@@ -66,6 +69,8 @@ kotlin {
             implementation(libs.kotlinx.coroutinesSwing)
             // Ktor engine for Desktop JVM
             implementation(libs.ktorClientOkhttp)
+            // Compose resources for JVM
+            implementation(compose.components.resources)
         }
     }
 }
@@ -116,6 +121,11 @@ buildkonfig {
             "WEB_GOOGLE_CLIENT_ID",
             providers.gradleProperty("WEB_GOOGLE_CLIENT_ID").orNull ?: ""
         )
+        buildConfigField(
+            com.codingfeline.buildkonfig.compiler.FieldSpec.Type.STRING,
+            "ANDROID_GOOGLE_CLIENT_ID",
+            providers.gradleProperty("ANDROID_GOOGLE_CLIENT_ID").orNull ?: ""
+        )
     }
 }
 
@@ -131,6 +141,28 @@ compose.desktop {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = "com.israeljuarez.sikacorekmp"
             packageVersion = "1.0.0"
+
+            // Iconos de empaquetado (condicionales)
+            val iconsDir = project.layout.projectDirectory.dir("composeApp/desktopIcons")
+            val winIcon = iconsDir.file("logo.ico").asFile
+            val macIcon = iconsDir.file("logo.icns").asFile
+            val linuxPng = project.layout.projectDirectory.file("composeApp/src/commonMain/composeResources/drawable/logo.png").asFile
+
+            windows {
+                if (winIcon.exists()) {
+                    iconFile.set(winIcon)
+                }
+            }
+            macOS {
+                if (macIcon.exists()) {
+                    iconFile.set(macIcon)
+                }
+            }
+            linux {
+                if (linuxPng.exists()) {
+                    iconFile.set(linuxPng)
+                }
+            }
         }
     }
 }
