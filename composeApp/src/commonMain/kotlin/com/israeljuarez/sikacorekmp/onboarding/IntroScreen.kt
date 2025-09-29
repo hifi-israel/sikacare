@@ -12,6 +12,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -32,6 +33,9 @@ import sikacore.composeapp.generated.resources.imagen_vista3
 import sikacore.composeapp.generated.resources.arrow_back
 import sikacore.composeapp.generated.resources.arrow_forward
 import sikacore.composeapp.generated.resources.check
+import com.israeljuarez.sikacorekmp.profile.ProfileRepository
+import kotlinx.coroutines.launch
+import androidx.compose.runtime.rememberCoroutineScope
 
 // Función para obtener el recurso de imagen según el paso
 @Composable
@@ -51,6 +55,8 @@ fun IntroScreen(
 ) {
     val backgroundBlue = Color(0xFF89C1EA)
     var isVisible by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+    val profileRepo = remember { ProfileRepository() }
 
     val containerTargetOffset: Dp = 0.dp
     val containerHiddenOffset: Dp = 600.dp
@@ -122,6 +128,8 @@ private fun IntroContent(
     onFinish: () -> Unit
 ) {
     val viewModel = remember { OnboardingViewModel() }
+    val scope = rememberCoroutineScope()
+    val profileRepo = remember { ProfileRepository() }
     val currentStep by viewModel.currentStep.collectAsState()
     val introScreens = viewModel.introScreens
 
@@ -132,63 +140,46 @@ private fun IntroContent(
     Column(
         modifier = modifier.verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(24.dp)
+        verticalArrangement = Arrangement.SpaceBetween
     ) {
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(32.dp))
 
-        // Imagen principal
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(200.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-        ) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                if (currentScreen != null) {
-                    Image(
-                        painter = painterResource(getImageResource(currentStep)),
-                        contentDescription = currentScreen.title,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .clip(RoundedCornerShape(12.dp)),
-                        contentScale = ContentScale.Crop
-                    )
-                }
-            }
+        // Imagen principal directamente sobre fondo azul
+        if (currentScreen != null) {
+            Image(
+                painter = painterResource(getImageResource(currentStep)),
+                contentDescription = currentScreen.title,
+                modifier = Modifier
+                    .fillMaxWidth(0.8f)
+                    .height(250.dp),
+                contentScale = ContentScale.Fit
+            )
         }
 
-        // Contenido de texto
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
-            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        // Contenido de texto sin Card
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Column(
-                modifier = Modifier.padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                currentScreen?.let { screen ->
-                    Text(
-                        text = screen.title,
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF1F2937),
-                        textAlign = TextAlign.Center
-                    )
+            currentScreen?.let { screen ->
+                Text(
+                    text = screen.title,
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                    textAlign = TextAlign.Center
+                )
 
-                    Text(
-                        text = screen.description,
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = Color(0xFF6B7280),
-                        textAlign = TextAlign.Center,
-                        lineHeight = MaterialTheme.typography.bodyLarge.lineHeight * 1.4
-                    )
-                }
+                Text(
+                    text = screen.description,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = Color.White.copy(alpha = 0.95f),
+                    textAlign = TextAlign.Center,
+                    lineHeight = MaterialTheme.typography.bodyLarge.lineHeight * 1.4
+                )
             }
         }
 
@@ -248,7 +239,16 @@ private fun IntroContent(
             Button(
                 onClick = {
                     if (isLastScreen) {
-                        onFinish()
+                        scope.launch {
+                            try {
+                                // Actualizar is_onboarding_seen a true
+                                profileRepo.updateOnboardingSeen(true)
+                                onFinish()
+                            } catch (e: Exception) {
+                                // En caso de error, continuar de todos modos
+                                onFinish()
+                            }
+                        }
                     } else {
                         viewModel.nextStep()
                     }
@@ -286,7 +286,18 @@ private fun IntroContent(
         // Botón de saltar (solo en las primeras pantallas)
         if (!isLastScreen) {
             TextButton(
-                onClick = onFinish,
+                onClick = {
+                    scope.launch {
+                        try {
+                            // Actualizar is_onboarding_seen a true al saltar
+                            profileRepo.updateOnboardingSeen(true)
+                            onFinish()
+                        } catch (e: Exception) {
+                            // En caso de error, continuar de todos modos
+                            onFinish()
+                        }
+                    }
+                },
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(

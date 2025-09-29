@@ -3,6 +3,7 @@ package com.israeljuarez.sikacorekmp.onboarding
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -119,12 +120,14 @@ private fun OnboardingContent(
     val isLoading by viewModel.isLoading.collectAsState()
     
     var fullName by remember { mutableStateOf(userProfile.fullName) }
-    var phone by remember { mutableStateOf(userProfile.phone) }
-    var avatarUrl by remember { mutableStateOf(userProfile.avatarUrl) }
+    var selectedGender by remember { mutableStateOf("") }
+    var birthdate by remember { mutableStateOf("") }
+    var selectedAvatarId by remember { mutableStateOf(1) }
     var verificationCode by remember { mutableStateOf("") }
     var showCodeInput by remember { mutableStateOf(false) }
     var codeSent by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+    var showDatePicker by remember { mutableStateOf(false) }
     
     val scope = rememberCoroutineScope()
     val repo = remember { AuthRepository() }
@@ -153,29 +156,40 @@ private fun OnboardingContent(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // Avatar
-                Box(
-                    modifier = Modifier
-                        .size(80.dp)
-                        .clip(CircleShape)
-                        .background(Color(0xFFE5E7EB))
+                // Selección de Avatar
+                Text(
+                    text = "Selecciona tu avatar:",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = Color(0xFF1F2937),
+                    modifier = Modifier.fillMaxWidth()
+                )
+                
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    if (avatarUrl.isNotEmpty()) {
-                        Image(
-                            painter = painterResource(Res.drawable.email),
-                            contentDescription = "Avatar",
-                            modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.Crop
-                        )
-                    } else {
-                        Icon(
-                            painter = painterResource(Res.drawable.person),
-                            contentDescription = "Avatar",
+                    // Mostrar 3 opciones de avatar
+                    for (avatarId in 1..3) {
+                        Box(
                             modifier = Modifier
-                                .fillMaxSize()
-                                .padding(16.dp),
-                            tint = Color(0xFF6B7280)
-                        )
+                                .size(80.dp)
+                                .clip(CircleShape)
+                                .background(
+                                    if (selectedAvatarId == avatarId) Color(0xFF1877F2).copy(alpha = 0.2f)
+                                    else Color(0xFFE5E7EB)
+                                )
+                                .clickable { selectedAvatarId = avatarId }
+                                .padding(4.dp)
+                        ) {
+                            Icon(
+                                painter = painterResource(Res.drawable.person),
+                                contentDescription = "Avatar $avatarId",
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(12.dp),
+                                tint = if (selectedAvatarId == avatarId) Color(0xFF1877F2) else Color(0xFF6B7280)
+                            )
+                        }
                     }
                 }
                 
@@ -186,9 +200,9 @@ private fun OnboardingContent(
                     color = Color(0xFF1F2937)
                 )
                 
-                Text(
+        Text(
                     text = "Necesitamos algunos datos adicionales para personalizar tu experiencia",
-                    style = MaterialTheme.typography.bodyMedium,
+            style = MaterialTheme.typography.bodyMedium,
                     color = Color(0xFF6B7280),
                     textAlign = TextAlign.Center
                 )
@@ -218,25 +232,53 @@ private fun OnboardingContent(
                     }
                 )
 
-                // Campo de teléfono
+                // Campo de género
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = "Género:",
+                        modifier = Modifier.align(Alignment.CenterVertically),
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                    FilterChip(
+                        selected = selectedGender == "M",
+                        onClick = { selectedGender = "M" },
+                        label = { Text("Masculino") },
+                        modifier = Modifier.weight(1f)
+                    )
+                    FilterChip(
+                        selected = selectedGender == "F",
+                        onClick = { selectedGender = "F" },
+                        label = { Text("Femenino") },
+                        modifier = Modifier.weight(1f)
+                    )
+                    FilterChip(
+                        selected = selectedGender == "O",
+                        onClick = { selectedGender = "O" },
+                        label = { Text("Otro") },
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+                
+                // Campo de fecha de nacimiento
                 OutlinedTextField(
-                    value = phone,
-                    onValueChange = { phone = it },
-                    label = { Text("Teléfono (opcional)") },
+                    value = birthdate,
+                    onValueChange = { birthdate = it },
+                    label = { Text("Fecha de nacimiento (AAAA-MM-DD)") },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-                    leadingIcon = {
-                        Icon(painter = painterResource(Res.drawable.phone), contentDescription = null)
-                    }
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    placeholder = { Text("2000-01-31") }
                 )
 
                 // Campo de email (solo lectura)
-                OutlinedTextField(
+        OutlinedTextField(
                     value = userEmail,
                     onValueChange = { },
-                    label = { Text("Email") },
-                    modifier = Modifier.fillMaxWidth(),
+            label = { Text("Email") },
+            modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
                     enabled = false,
                     leadingIcon = {
@@ -303,8 +345,8 @@ private fun OnboardingContent(
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                         )
                         
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
+        Row(
+            modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             Button(
@@ -386,22 +428,30 @@ private fun OnboardingContent(
         // Botón de continuar
         Button(
             onClick = {
-                if (fullName.isNotEmpty()) {
+                if (fullName.isNotEmpty() && selectedGender.isNotEmpty() && birthdate.isNotEmpty()) {
                     scope.launch {
-                        viewModel.updateProfile(fullName, phone, avatarUrl)
-                        val success = viewModel.completeOnboarding()
-                        if (success) {
+                        try {
+                            // Actualizar perfil con género y fecha
+                            val profileRepo = com.israeljuarez.sikacorekmp.profile.ProfileRepository()
+                            profileRepo.finishOnboarding(selectedGender, birthdate)
+                            // También actualizar el nombre si cambió
+                            viewModel.updateProfile(fullName = fullName, phone = "", avatarUrl = "avatar_$selectedAvatarId")
                             onNavigateToHome()
-                        } else {
-                            errorMessage = "Error al completar el onboarding"
+                        } catch (e: Exception) {
+                            errorMessage = "Error al completar el onboarding: ${e.message}"
                         }
                     }
                 } else {
-                    errorMessage = "El nombre completo es obligatorio"
+                    errorMessage = when {
+                        fullName.isEmpty() -> "El nombre completo es obligatorio"
+                        selectedGender.isEmpty() -> "Por favor selecciona tu género"
+                        birthdate.isEmpty() -> "Por favor ingresa tu fecha de nacimiento"
+                        else -> "Por favor completa todos los campos"
+                    }
                 }
             },
             modifier = Modifier.fillMaxWidth().height(56.dp),
-            enabled = fullName.isNotEmpty() && (isGoogleUser || isEmailVerified) && !isLoading,
+            enabled = fullName.isNotEmpty() && selectedGender.isNotEmpty() && birthdate.isNotEmpty() && (isGoogleUser || isEmailVerified) && !isLoading,
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color(0xFF1877F2),
                 contentColor = Color.White

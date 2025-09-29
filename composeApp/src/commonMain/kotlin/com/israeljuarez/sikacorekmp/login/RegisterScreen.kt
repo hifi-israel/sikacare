@@ -406,14 +406,8 @@ private fun RegisterContent(
             SocialButtons(
                 actionText = "Regístrate",
                 onGoogleClick = {
-                    scope.launch {
-                        try {
-                            supabase.auth.signInWith(Google)
-                            // El resultado llega por deeplink -> Splash decide Home/Onboarding
-                        } catch (_: Throwable) {
-                            // TODO: mostrar error
-                        }
-                    }
+                    // Solo navegar a login, NO crear token automáticamente
+                    onNavigateToLogin()
                 }
             )
         }

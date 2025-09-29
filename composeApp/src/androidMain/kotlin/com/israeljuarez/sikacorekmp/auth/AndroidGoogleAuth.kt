@@ -20,6 +20,7 @@ class AndroidGoogleAuth {
     
     suspend fun signInWithGoogle(context: Context): Result<Unit> {
         return try {
+            println("🔵 [ANDROID] Iniciando Google Auth para Android...")
             val credentialManager = CredentialManager.create(context)
             
             // Generate nonce for security
@@ -48,22 +49,26 @@ class AndroidGoogleAuth {
                 .createFrom(result.credential.data)
             val googleIdToken = googleIdTokenCredential.idToken
             
-            // Sign in with Supabase using ID Token
+            // Sign in with Supabase using ID Token (sin nonce)
+            println("🔵 [ANDROID] Autenticando con Supabase...")
             SupabaseProvider.client.auth.signInWith(IDToken) {
                 idToken = googleIdToken
                 provider = Google
-                nonce = rawNonce
             }
-            
+            println("✅ [ANDROID] Google Auth exitoso en Android")
             Result.success(Unit)
             
         } catch (e: GetCredentialException) {
+            println("❌ [ANDROID] Error de credenciales: ${e.message}")
             Result.failure(Exception("Credential error: ${e.message}"))
         } catch (e: GoogleIdTokenParsingException) {
+            println("❌ [ANDROID] Error parsing token: ${e.message}")
             Result.failure(Exception("Token parsing error: ${e.message}"))
         } catch (e: RestException) {
+            println("❌ [ANDROID] Error de Supabase: ${e.message}")
             Result.failure(Exception("Supabase error: ${e.message}"))
         } catch (e: Exception) {
+            println("❌ [ANDROID] Error general: ${e.message}")
             Result.failure(e)
         }
     }

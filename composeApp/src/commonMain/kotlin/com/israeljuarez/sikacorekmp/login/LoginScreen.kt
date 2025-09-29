@@ -243,16 +243,23 @@ private fun LoginContent(
         SocialSeparator()
         SocialButtons(
             onGoogleClick = {
+                // Usar la misma lógica que funciona en el registro
                 scope.launch {
                     try {
+                        println("🔵 [LOGIN] Iniciando proceso de Google Auth...")
                         val result = googleAuth.signInWithGoogle()
+                        println("🔵 [LOGIN] Resultado de Google Auth: $result")
+                        
                         if (result.isSuccess) {
+                            println("✅ [LOGIN] Google Auth exitoso, navegando...")
                             onLoginSuccess()
                         } else {
-                            errorMessage = "Error al iniciar sesión con Google"
+                            println("❌ [LOGIN] Google Auth falló: ${result.exceptionOrNull()}")
+                            errorMessage = "Error al iniciar sesión con Google: ${result.exceptionOrNull()?.message}"
                         }
                     } catch (e: Exception) {
-                        errorMessage = "Error al iniciar sesión con Google"
+                        println("❌ [LOGIN] Excepción en Google Auth: ${e.message}")
+                        errorMessage = "Error al iniciar sesión con Google: ${e.message}"
                     }
                 }
             }

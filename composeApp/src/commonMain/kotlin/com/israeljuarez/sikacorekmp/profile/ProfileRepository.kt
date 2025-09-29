@@ -47,4 +47,12 @@ class ProfileRepository(
             filter { eq("user_id", userId) }
         }
     }
+    
+    suspend fun updateOnboardingSeen(seen: Boolean) {
+        val userId = client.auth.currentUserOrNull()?.id ?: return
+        val body = ProfileUpdate(is_onboarding_seen = seen)
+        client.postgrest["profiles"].update(body) {
+            filter { eq("user_id", userId) }
+        }
+    }
 }
