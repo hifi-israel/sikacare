@@ -113,6 +113,10 @@ Desarrollado por **ZeroGravity**, SikaCare se convierte en una herramienta esenc
 - **AndroidX Activity Compose**: 1.11.0
 - **AndroidX Lifecycle**: 2.9.4
 - **Kotlinx Coroutines**: 1.10.2
+- **Supabase**: 3.2.4
+  - Auth-kt
+  - Postgrest-kt
+- **Ktor Client**: 3.0.3 (para comunicación HTTP)
 
 **Instalación y Configuración:**
 
@@ -151,8 +155,20 @@ fun LoginScreen() {
 }
 ```
 
+**Pantallas implementadas:**
+- **LoginScreen**: Autenticación con email/contraseña y Google
+- **RegisterScreen**: Registro de nuevos usuarios con validación
+- **ForgotPasswordScreen**: Recuperación de contraseña vía email
+- **ResetPasswordWithCodeScreen**: Restablecimiento con código de verificación
+- **IntroScreen**: Onboarding con 3 pantallas de introducción
+- **OnboardingScreen**: Completar perfil de usuario post-registro
+- **SplashScreen**: Pantalla de carga nativa para cada plataforma
+
 **Recursos:**
-Desde `composeApp/src/commonMain/composeResources/` dispones de todos los recursos compartidos entre plataformas.
+Desde `composeApp/src/commonMain/composeResources/` dispones de todos los recursos compartidos entre plataformas:
+- Imágenes (logo.png, Imagen_vista1-3.png, google_logo.png)
+- Iconos vectoriales (arrow_back/forward.xml, check.xml, person.xml, phone.xml, email.xml)
+- Recursos generados automáticamente con Compose Resources
 
 **Splash Screen:**
 Primera vista del proyecto que se lanzará siempre que se ejecute la app. Implementada de manera nativa para cada plataforma:
@@ -168,23 +184,52 @@ Primera vista del proyecto que se lanzará siempre que se ejecute la app. Implem
 
 ### 🎨 Características Técnicas
 
-- **UI Moderna**: Interfaz desarrollada con Jetpack Compose
+- **UI Moderna**: Interfaz desarrollada con Jetpack Compose Multiplatform
 - **Splash Screen**: Pantalla de carga nativa para cada plataforma
-- **Autenticación**: Pantalla de login con integración social
+- **Autenticación**: Sistema completo con Supabase Auth
+  - Login con email/contraseña
+  - Registro con validación de campos
+  - Autenticación con Google (OAuth)
+  - Recuperación de contraseña con código de verificación
+  - Verificación de email
+- **Base de Datos**: Integración con Supabase
+  - Tabla `profiles` para datos de usuario
+  - Tabla `avatars` para iconos predefinidos
+  - RLS (Row Level Security) para protección de datos
+  - Triggers automáticos para gestión de perfiles
+- **Onboarding**: Sistema de introducción interactivo
+  - 3 pantallas de bienvenida con animaciones
+  - Completar perfil post-registro
+  - Seguimiento con `is_onboarding_seen`
 - **Animaciones**: Transiciones fluidas y efectos visuales
 - **Material Design 3**: Sistema de diseño consistente
 - **Accesibilidad**: Soporte completo para lectores de pantalla
+- **Gestión de Estado**: ViewModels con StateFlow para arquitectura reactiva
+- **Navegación**: Sistema de navegación entre pantallas con callbacks
 
 ### 📊 Estado del Desarrollo
 
-Actualmente, el proyecto incluye la implementación del Splash Screen y la pantalla de Login. Las demás funcionalidades están planificadas y se irán integrando en futuras versiones.
+El proyecto cuenta con un sistema de autenticación completo, onboarding interactivo y base de datos integrada. Las funcionalidades médicas principales están en desarrollo.
 
-**Versión Actual:**
+**Versión Actual (v0.2.0):**
 - ✅ Splash Screen multiplataforma
-- ✅ Pantalla de Login con autenticación social
+- ✅ Sistema de autenticación completo (Supabase)
+  - ✅ Login con email/contraseña
+  - ✅ Registro con validación
+  - ✅ Autenticación con Google OAuth
+  - ✅ Recuperación de contraseña
+  - ✅ Verificación de email
+- ✅ Sistema de Onboarding
+  - ✅ IntroScreen con 3 pantallas de bienvenida
+  - ✅ OnboardingScreen para completar perfil
+- ✅ Base de datos con Supabase
+  - ✅ Gestión de perfiles de usuario
+  - ✅ Sistema de avatares
+  - ✅ RLS para seguridad
 - 🔄 En desarrollo: Guías de primeros auxilios
 - 📋 Planificado: Sistema de citas médicas
 - 📋 Planificado: Consultas virtuales
+- 📋 Planificado: Preclasificación de enfermedades
 
 
 
