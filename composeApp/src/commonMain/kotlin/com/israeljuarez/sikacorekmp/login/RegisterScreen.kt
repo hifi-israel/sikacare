@@ -19,11 +19,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.israeljuarez.sikacorekmp.getPlatform
 import com.israeljuarez.sikacorekmp.auth.AuthRepository
-import com.israeljuarez.sikacorekmp.core.SupabaseProvider
 import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
-import io.github.jan.supabase.auth.auth
-import io.github.jan.supabase.auth.providers.Google
 
 @Composable
 fun RegisterScreen(
@@ -120,7 +117,6 @@ private fun RegisterContent(
     var errorMessage by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
     val repo = remember { AuthRepository() }
-    val supabase = remember { SupabaseProvider.client }
     
     // Validaciones en tiempo real
     val emailValidation = remember(email) {
@@ -192,26 +188,10 @@ private fun RegisterContent(
                 },
                 label = { Text("Email") },
                 singleLine = true,
-                modifier = Modifier.fillMaxWidth().height(60.dp),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                 isError = emailValidation.state == ValidationState.INVALID,
                 enabled = !showSuccessMessage,
-                trailingIcon = {
-                    if (isEmailComplete(email) && !showSuccessMessage) {
-                        TextButton(onClick = { 
-                            // Solo validar formato, no enviar código aún
-                        }) {
-                            Text("✓", color = ValidationSuccess)
-                        }
-                    } else if (showSuccessMessage) {
-                        TextButton(onClick = { 
-                            // Permitir cambiar email pero reiniciar proceso
-                            showSuccessMessage = false
-                        }) {
-                            Text("Cambiar", color = ValidationWarning)
-                        }
-                    }
-                }
+                modifier = Modifier.fillMaxWidth().height(60.dp)
             )
             if (emailValidation.showMessage) {
                 Text(
@@ -406,7 +386,8 @@ private fun RegisterContent(
             SocialButtons(
                 actionText = "Regístrate",
                 onGoogleClick = {
-                    // Solo navegar a login, NO crear token automáticamente
+                    // Con Google OAuth, Supabase crea el usuario automáticamente
+                    // Solo redirigimos a login donde está configurado el OAuth
                     onNavigateToLogin()
                 }
             )

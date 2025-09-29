@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 @Composable
 expect fun rememberGoogleAuthProvider(): GoogleAuthProvider
 
-expect class GoogleAuthProvider {
+interface GoogleAuthProvider {
     suspend fun signInWithGoogle(): Result<Unit>
 }
+

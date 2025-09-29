@@ -13,8 +13,6 @@ import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.builtin.IDToken
 import io.github.jan.supabase.auth.providers.Google
 import io.github.jan.supabase.exceptions.RestException
-import java.security.MessageDigest
-import java.util.UUID
 
 class AndroidGoogleAuth {
     
@@ -23,17 +21,11 @@ class AndroidGoogleAuth {
             println("🔵 [ANDROID] Iniciando Google Auth para Android...")
             val credentialManager = CredentialManager.create(context)
             
-            // Generate nonce for security
-            val rawNonce = UUID.randomUUID().toString()
-            val bytes = rawNonce.toByteArray()
-            val md = MessageDigest.getInstance("SHA-256")
-            val digest = md.digest(bytes)
-            val hashedNonce = digest.fold("") { str, it -> str + "%02x".format(it) }
-            
+            // NO usar nonce para evitar conflictos con Supabase
             val googleIdOption = GetGoogleIdOption.Builder()
                 .setFilterByAuthorizedAccounts(false)
                 .setServerClientId(BuildKonfig.ANDROID_GOOGLE_CLIENT_ID) // Web Client ID
-                .setNonce(hashedNonce)
+                // .setNonce(hashedNonce) // Removido para evitar conflicto
                 .build()
             
             val request = GetCredentialRequest.Builder()
@@ -49,11 +41,12 @@ class AndroidGoogleAuth {
                 .createFrom(result.credential.data)
             val googleIdToken = googleIdTokenCredential.idToken
             
-            // Sign in with Supabase using ID Token (sin nonce)
+            // Sign in with Supabase using ID Token
             println("🔵 [ANDROID] Autenticando con Supabase...")
             SupabaseProvider.client.auth.signInWith(IDToken) {
                 idToken = googleIdToken
                 provider = Google
+                // No pasar nonce ya que no lo estamos usando
             }
             println("✅ [ANDROID] Google Auth exitoso en Android")
             Result.success(Unit)

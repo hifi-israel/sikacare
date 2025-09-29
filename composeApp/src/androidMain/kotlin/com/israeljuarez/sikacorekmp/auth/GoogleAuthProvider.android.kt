@@ -7,14 +7,14 @@ import androidx.compose.ui.platform.LocalContext
 @Composable
 actual fun rememberGoogleAuthProvider(): GoogleAuthProvider {
     val context = LocalContext.current
-    return remember { GoogleAuthProvider(AndroidGoogleAuth(), context) }
+    return remember { AndroidGoogleAuthProviderImpl(AndroidGoogleAuth(), context) }
 }
 
-actual class GoogleAuthProvider(
+class AndroidGoogleAuthProviderImpl(
     private val androidAuth: AndroidGoogleAuth,
     private val context: android.content.Context
-) {
-    actual suspend fun signInWithGoogle(): Result<Unit> {
+) : GoogleAuthProvider {
+    override suspend fun signInWithGoogle(): Result<Unit> {
         println("🔵 [ANDROID_PROVIDER] Context disponible: ${context != null}")
         println("🔵 [ANDROID_PROVIDER] AndroidAuth disponible: ${androidAuth != null}")
         return androidAuth.signInWithGoogle(context)

@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "933920856529",
+    "project_id": "sikacare",
+    "storage_bucket": "sikacare.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:933920856529:android:eaddaf3997536029e728f0",
+        "android_client_info": {
+          "package_name": "com.israeljuarez.sikacorekmp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "933920856529-gugcs1fogqcc55qtoqma2alajdppk97k.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.israeljuarez.sikacorekmp",
+            "certificate_hash": "543cdff11bfffa18fa4f4be59b2fc770fb80074d"
+          }
+        },
+        {
+          "client_id": "933920856529-5gphgi299i3c6qmr76qkv5u7jah1jgbh.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDgPR4x6Nj4WGDo1OGpnJI6vceIv_ryh6g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "933920856529-5gphgi299i3c6qmr76qkv5u7jah1jgbh.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
