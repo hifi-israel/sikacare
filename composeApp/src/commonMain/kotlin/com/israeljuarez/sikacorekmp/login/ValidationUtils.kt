@@ -12,10 +12,34 @@ val ValidationError = Color(0xFFEF4444)   // Rojo
 val ValidationWarning = Color(0xFFF59E0B) // Amarillo
 
 /**
- * Valida si un email tiene formato correcto
+ * Valida si un email tiene formato correcto y es válido
  */
 fun isValidEmail(email: String): Boolean {
-    val emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$".toRegex()
+    if (email.isBlank()) return false
+    
+    // Regex más estricto para validar email
+    val emailRegex = "^[a-zA-Z0-9]([a-zA-Z0-9._-]*[a-zA-Z0-9])?@[a-zA-Z0-9]([a-zA-Z0-9.-]*[a-zA-Z0-9])?\\.[a-zA-Z]{2,}$".toRegex()
+    
+    // Verificaciones adicionales
+    val parts = email.split("@")
+    if (parts.size != 2) return false
+    
+    val localPart = parts[0]
+    val domainPart = parts[1]
+    
+    // El local part no puede empezar o terminar con punto
+    if (localPart.startsWith(".") || localPart.endsWith(".")) return false
+    
+    // No puede tener puntos consecutivos
+    if (localPart.contains("..")) return false
+    
+    // El dominio debe tener al menos un punto
+    if (!domainPart.contains(".")) return false
+    
+    // El dominio no puede empezar o terminar con punto o guión
+    if (domainPart.startsWith(".") || domainPart.endsWith(".") || 
+        domainPart.startsWith("-") || domainPart.endsWith("-")) return false
+    
     return emailRegex.matches(email)
 }
 

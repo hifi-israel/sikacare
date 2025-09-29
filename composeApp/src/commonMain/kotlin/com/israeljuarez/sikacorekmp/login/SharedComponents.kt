@@ -13,6 +13,7 @@ import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.painterResource
 import sikacore.composeapp.generated.resources.Res
+import kotlinx.coroutines.launch
 import sikacore.composeapp.generated.resources.google_logo
 import sikacore.composeapp.generated.resources.facebook_logo_vector
 
@@ -67,13 +68,33 @@ fun SocialButtons(
     onFacebookClick: () -> Unit = {},
     onGoogleClick: () -> Unit = {}
 ) {
+    var facebookText by remember { mutableStateOf("$actionText con Facebook") }
+    var isFacebookDisabled by remember { mutableStateOf(false) }
+    
     Column(modifier = Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         // Facebook
         val fbBlue = Color(0xFF1877F2)
         Button(
-            onClick = onFacebookClick,
+            onClick = {
+                if (!isFacebookDisabled) {
+                    // Mostrar "Próximamente" por 2 segundos
+                    isFacebookDisabled = true
+                    facebookText = "Próximamente"
+                    
+                    // Volver al texto original después de 2 segundos
+                    kotlinx.coroutines.GlobalScope.launch {
+                        kotlinx.coroutines.delay(2000)
+                        facebookText = "$actionText con Facebook"
+                        isFacebookDisabled = false
+                    }
+                }
+            },
             modifier = Modifier.fillMaxWidth().height(48.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = fbBlue, contentColor = Color.White)
+            colors = ButtonDefaults.buttonColors(
+                containerColor = if (isFacebookDisabled) Color(0xFF9CA3AF) else fbBlue, 
+                contentColor = Color.White
+            ),
+            enabled = !isFacebookDisabled
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Image(
@@ -82,7 +103,7 @@ fun SocialButtons(
                     modifier = Modifier.size(30.dp)
                 )
                 Spacer(Modifier.width(12.dp))
-                Text("$actionText con Facebook")
+                Text(facebookText)
             }
         }
 

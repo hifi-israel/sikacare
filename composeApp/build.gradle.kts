@@ -45,6 +45,11 @@ kotlin {
             implementation("io.github.jan-tennert.supabase:postgrest-kt:3.2.4")
             // Coroutines comunes
             implementation(libs.kotlinxCoroutinesCore)
+            // HTTP para SendGrid
+            implementation("io.ktor:ktor-client-core:2.3.12")
+            implementation("io.ktor:ktor-client-json:2.3.12")
+            implementation("io.ktor:ktor-client-serialization:2.3.12")
+            implementation("io.ktor:ktor-client-logging:2.3.12")
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

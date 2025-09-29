@@ -27,9 +27,7 @@ import io.github.jan.supabase.auth.providers.Google
 
 @Composable
 fun RegisterScreen(
-    onNavigateToLogin: () -> Unit = {},
-    onNavigateToRegister: () -> Unit = {},
-    onRegisteredConfirmed: () -> Unit = {}
+    onNavigateToLogin: () -> Unit = {}
 ) {
     val backgroundBlue = Color(0xFF89C1EA)
     var isVisible by remember { mutableStateOf(false) }
@@ -47,7 +45,14 @@ fun RegisterScreen(
         isVisible = true
     }
 
-    val isDesktop = remember { getPlatform().name.startsWith("Java") }
+    val isDesktop = remember { 
+        try {
+            val platform = getPlatform()
+            platform.name.startsWith("Java")
+        } catch (e: Exception) {
+            false
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -72,9 +77,7 @@ fun RegisterScreen(
                         .align(Alignment.Center)
                         .offset(y = offsetY)
                         .padding(horizontal = 24.dp, vertical = 16.dp),
-                    onNavigateToLogin = onNavigateToLogin,
-                    onNavigateToRegister = onNavigateToRegister,
-                    onRegisteredConfirmed = onRegisteredConfirmed
+                    onNavigateToLogin = onNavigateToLogin
                 )
             }
         } else {
@@ -94,9 +97,7 @@ fun RegisterScreen(
                     .align(Alignment.BottomCenter)
                     .offset(y = offsetY)
                     .padding(horizontal = 24.dp, vertical = 16.dp),
-                onNavigateToLogin = onNavigateToLogin,
-                onNavigateToRegister = onNavigateToRegister,
-                onRegisteredConfirmed = onRegisteredConfirmed
+                onNavigateToLogin = onNavigateToLogin
             )
         }
     }
@@ -106,20 +107,17 @@ fun RegisterScreen(
 @Composable
 private fun RegisterContent(
     modifier: Modifier = Modifier,
-    onNavigateToLogin: () -> Unit,
-    onNavigateToRegister: () -> Unit,
-    onRegisteredConfirmed: () -> Unit
+    onNavigateToLogin: () -> Unit
 ) {
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var phone by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
-    var verificationCode by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
     var confirmPasswordVisible by remember { mutableStateOf(false) }
-    var showVerificationCode by remember { mutableStateOf(false) }
-    var emailLocked by remember { mutableStateOf("") }
+    var showSuccessMessage by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
     val repo = remember { AuthRepository() }
     val supabase = remember { SupabaseProvider.client }
@@ -188,7 +186,7 @@ private fun RegisterContent(
             OutlinedTextField(
                 value = email,
                 onValueChange = { 
-                    if (!showVerificationCode) {
+                    if (!showSuccessMessage) {
                         email = it
                     }
                 },
@@ -197,20 +195,18 @@ private fun RegisterContent(
                 modifier = Modifier.fillMaxWidth().height(60.dp),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                 isError = emailValidation.state == ValidationState.INVALID,
-                enabled = !showVerificationCode,
+                enabled = !showSuccessMessage,
                 trailingIcon = {
-                    if (isEmailComplete(email) && !showVerificationCode) {
+                    if (isEmailComplete(email) && !showSuccessMessage) {
                         TextButton(onClick = { 
                             // Solo validar formato, no enviar código aún
                         }) {
                             Text("✓", color = ValidationSuccess)
                         }
-                    } else if (showVerificationCode) {
+                    } else if (showSuccessMessage) {
                         TextButton(onClick = { 
                             // Permitir cambiar email pero reiniciar proceso
-                            showVerificationCode = false
-                            emailLocked = ""
-                            verificationCode = ""
+                            showSuccessMessage = false
                         }) {
                             Text("Cambiar", color = ValidationWarning)
                         }
@@ -321,36 +317,65 @@ private fun RegisterContent(
             }
         }
 
-        // Segunda fase: mostramos mensaje y botón "Ya confirmé" (conservando UI simple)
-        if (showVerificationCode) {
+        // Mensaje de éxito después del registro
+        if (showSuccessMessage) {
             Text(
-                text = "Te enviamos un enlace de verificación a: $emailLocked",
+                text = "¡Cuenta creada exitosamente! Ahora completa tu perfil",
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color(0xFF4CAF50),
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
+        }
+
+        // Mensaje de error
+        errorMessage?.let { msg ->
+            Text(
+                text = msg,
+                color = MaterialTheme.colorScheme.error,
                 style = MaterialTheme.typography.bodySmall,
-                color = Color(0xFF4CAF50)
+                modifier = Modifier.padding(top = 8.dp)
             )
         }
 
         Button(
             onClick = { 
-                if (!showVerificationCode) {
+                if (!showSuccessMessage) {
                     if (isValidEmail(email) && passwordValidation.state == ValidationState.VALID && passwordMatchValidation.state == ValidationState.VALID && phoneValidation.state == ValidationState.VALID) {
                         scope.launch {
                             try {
+                                errorMessage = null
                                 repo.signUpWithEmailPassword(email, password)
-                                showVerificationCode = true
-                                emailLocked = email
-                            } catch (_: Throwable) {
-                                // TODO: mostrar error
+                                showSuccessMessage = true
+                            } catch (e: Throwable) {
+                                // Mostrar el error completo para debugging
+                                val fullError = e.message ?: e.toString()
+                                errorMessage = when {
+                                    fullError.contains("User already registered") -> 
+                                        "Este email ya está registrado. Intenta iniciar sesión"
+                                    fullError.contains("Password should be at least") -> 
+                                        "La contraseña debe tener al menos 6 caracteres"
+                                    fullError.contains("Invalid email") -> 
+                                        "El formato del email no es válido"
+                                    fullError.contains("unexpected_failure") -> 
+                                        "Error del servidor. Intenta más tarde o contacta soporte"
+                                    fullError.contains("Email rate limit exceeded") -> 
+                                        "Demasiados intentos. Espera unos minutos"
+                                    fullError.contains("Signup is disabled") -> 
+                                        "El registro está temporalmente deshabilitado"
+                                    fullError.contains("validation_failed") -> 
+                                        "Datos inválidos. Verifica el formato del email y contraseña"
+                                    else -> "Error: $fullError"
+                                }
                             }
                         }
                     }
                 } else {
-                    // Ya confirmé -> vamos a Splash para que resuelva sesión nueva
-                    onRegisteredConfirmed()
+                    // Cuenta creada exitosamente -> redirigir a login
+                    onNavigateToLogin()
                 }
             }, 
             modifier = Modifier.fillMaxWidth().height(48.dp),
-            enabled = if (!showVerificationCode) {
+            enabled = if (!showSuccessMessage) {
                 isValidEmail(email) && passwordValidation.state == ValidationState.VALID && passwordMatchValidation.state == ValidationState.VALID && phoneValidation.state == ValidationState.VALID
             } else {
                 true
@@ -360,34 +385,38 @@ private fun RegisterContent(
                 contentColor = Color.White
             )
         ) {
-            Text(if (showVerificationCode) "Ya confirmé" else "Enviar enlace de verificación")
+            Text(if (showSuccessMessage) "Ir al login" else "Crear cuenta")
         }
 
-        // Enlace a Login
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text("¿Ya tienes una cuenta? ")
-            TextButton(onClick = { onNavigateToLogin() }) { Text("Inicia sesión") }
+        // Enlace a Login (solo si no se ha creado la cuenta)
+        if (!showSuccessMessage) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("¿Ya tienes una cuenta? ")
+                TextButton(onClick = { onNavigateToLogin() }) { Text("Inicia sesión") }
+            }
         }
 
-        // Separador y botones sociales
-        SocialSeparator()
-        SocialButtons(
-            actionText = "Regístrate",
-            onGoogleClick = {
-                scope.launch {
-                    try {
-                        supabase.auth.signInWith(Google)
-                        // El resultado llega por deeplink -> Splash decide Home/Onboarding
-                    } catch (_: Throwable) {
-                        // TODO: mostrar error
+        // Separador y botones sociales (solo si no se ha creado la cuenta)
+        if (!showSuccessMessage) {
+            SocialSeparator()
+            SocialButtons(
+                actionText = "Regístrate",
+                onGoogleClick = {
+                    scope.launch {
+                        try {
+                            supabase.auth.signInWith(Google)
+                            // El resultado llega por deeplink -> Splash decide Home/Onboarding
+                        } catch (_: Throwable) {
+                            // TODO: mostrar error
+                        }
                     }
                 }
-            }
-        )
+            )
+        }
 
         Spacer(Modifier.height(16.dp))
     }

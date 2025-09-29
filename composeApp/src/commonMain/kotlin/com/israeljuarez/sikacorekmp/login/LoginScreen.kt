@@ -57,7 +57,14 @@ fun LoginScreen(
     }
 
     // Detección simple de Desktop (JVM) usando Platform
-    val isDesktop = remember { getPlatform().name.startsWith("Java") }
+    val isDesktop = remember { 
+        try {
+            val platform = getPlatform()
+            platform.name.startsWith("Java")
+        } catch (e: Exception) {
+            false
+        }
+    }
     val scope = rememberCoroutineScope()
 
     Box(
@@ -131,7 +138,7 @@ private fun LoginContent(
     var errorMessage by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
     val repo = remember { AuthRepository() }
-    val supabase = remember { SupabaseProvider.client }
+    // Simplificar Google Auth - usar directamente
     val googleAuth = rememberGoogleAuthProvider()
 
     Column(
@@ -199,7 +206,17 @@ private fun LoginContent(
                         repo.signInWithEmailPassword(email, password)
                         onLoginSuccess()
                     } catch (e: Throwable) {
-                        errorMessage = e.message ?: "Ocurrió un error inesperado"
+                        errorMessage = when {
+                            e.message?.contains("Invalid login credentials") == true -> 
+                                "Email o contraseña incorrectos"
+                            e.message?.contains("Email not confirmed") == true -> 
+                                "Por favor confirma tu email antes de iniciar sesión"
+                            e.message?.contains("Too many requests") == true -> 
+                                "Demasiados intentos. Intenta más tarde"
+                            e.message?.contains("validation_failed") == true -> 
+                                "Email o contraseña inválidos"
+                            else -> "Error al iniciar sesión. Verifica tus datos"
+                        }
                     }
                 }
             },
@@ -212,10 +229,12 @@ private fun LoginContent(
             Text("Ingresar")
         }
 
-        errorMessage?.let {
+        // Kotlin
+        errorMessage?.let { msg ->
             Text(
-                text = it,
-                color = MaterialTheme.colors.error,
+                text = msg,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier.padding(top = 8.dp)
             )
         }
@@ -230,10 +249,10 @@ private fun LoginContent(
                         if (result.isSuccess) {
                             onLoginSuccess()
                         } else {
-                            // TODO: mostrar error
+                            errorMessage = "Error al iniciar sesión con Google"
                         }
                     } catch (e: Exception) {
-                        // TODO: mostrar error
+                        errorMessage = "Error al iniciar sesión con Google"
                     }
                 }
             }

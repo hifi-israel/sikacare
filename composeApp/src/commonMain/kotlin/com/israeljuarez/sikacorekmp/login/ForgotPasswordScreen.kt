@@ -21,10 +21,12 @@ import com.israeljuarez.sikacorekmp.getPlatform
 import com.israeljuarez.sikacorekmp.auth.AuthRepository
 import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
 
 @Composable
 fun ForgotPasswordScreen(
-    onNavigateToLogin: () -> Unit = {}
+    onNavigateToLogin: () -> Unit = {},
+    onNavigateToResetWithCode: (String) -> Unit = {}
 ) {
     val backgroundBlue = Color(0xFF89C1EA)
     var isVisible by remember { mutableStateOf(false) }
@@ -67,7 +69,8 @@ fun ForgotPasswordScreen(
                         .align(Alignment.Center)
                         .offset(y = offsetY)
                         .padding(horizontal = 24.dp, vertical = 16.dp),
-                    onNavigateToLogin = onNavigateToLogin
+                    onNavigateToLogin = onNavigateToLogin,
+                    onNavigateToResetWithCode = onNavigateToResetWithCode
                 )
             }
         } else {
@@ -87,7 +90,8 @@ fun ForgotPasswordScreen(
                     .align(Alignment.BottomCenter)
                     .offset(y = offsetY)
                     .padding(horizontal = 24.dp, vertical = 16.dp),
-                onNavigateToLogin = onNavigateToLogin
+                onNavigateToLogin = onNavigateToLogin,
+                onNavigateToResetWithCode = onNavigateToResetWithCode
             )
         }
     }
@@ -96,16 +100,14 @@ fun ForgotPasswordScreen(
 @Composable
 private fun ForgotPasswordContent(
     modifier: Modifier = Modifier,
-    onNavigateToLogin: () -> Unit
+    onNavigateToLogin: () -> Unit,
+    onNavigateToResetWithCode: (String) -> Unit
 ) {
     var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var confirmPassword by remember { mutableStateOf("") }
-    var verificationCode by remember { mutableStateOf("") }
-    var passwordVisible by remember { mutableStateOf(false) }
-    var confirmPasswordVisible by remember { mutableStateOf(false) }
-    var showVerificationCode by remember { mutableStateOf(false) }
-    var emailLocked by remember { mutableStateOf("") }
+    var showSuccessMessage by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+    var resetButtonText by remember { mutableStateOf("Enviar enlace de restablecimiento") }
+    var isResetDisabled by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val repo = remember { AuthRepository() }
     
@@ -115,27 +117,6 @@ private fun ForgotPasswordContent(
             email.isEmpty() -> FieldValidation(ValidationState.NONE)
             !isValidEmail(email) -> FieldValidation(ValidationState.INVALID, "Formato de email inválido", true)
             else -> FieldValidation(ValidationState.VALID, "Email válido", true)
-        }
-    }
-    
-    val passwordValidation = remember(password) {
-        if (password.isEmpty()) {
-            FieldValidation(ValidationState.NONE)
-        } else {
-            val result = isValidPassword(password)
-            FieldValidation(
-                state = if (result.isValid) ValidationState.VALID else ValidationState.INVALID,
-                message = if (result.isValid) "Contraseña válida" else result.errors.joinToString(", "),
-                showMessage = true
-            )
-        }
-    }
-    
-    val passwordMatchValidation = remember(password, confirmPassword) {
-        when {
-            confirmPassword.isEmpty() -> FieldValidation(ValidationState.NONE)
-            doPasswordsMatch(password, confirmPassword) -> FieldValidation(ValidationState.VALID, "Las contraseñas coinciden", true)
-            else -> FieldValidation(ValidationState.INVALID, "Las contraseñas no coinciden", true)
         }
     }
 
@@ -151,7 +132,7 @@ private fun ForgotPasswordContent(
             style = MaterialTheme.typography.headlineMedium
         )
         Text(
-            text = "Ingresa tu email y establece una nueva contraseña",
+            text = "Ingresa tu email y te enviaremos un enlace para restablecer tu contraseña",
             style = MaterialTheme.typography.bodyMedium,
             color = Color(0xFF475569)
         )
@@ -160,32 +141,19 @@ private fun ForgotPasswordContent(
         Column {
             OutlinedTextField(
                 value = email,
-                onValueChange = { 
-                    if (!showVerificationCode) {
-                        email = it
-                    }
-                },
+                onValueChange = { email = it },
                 label = { Text("Email") },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth().height(60.dp),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                 isError = emailValidation.state == ValidationState.INVALID,
-                enabled = !showVerificationCode,
+                enabled = !showSuccessMessage,
                 trailingIcon = {
-                    if (isEmailComplete(email) && !showVerificationCode) {
+                    if (isEmailComplete(email) && !showSuccessMessage) {
                         TextButton(onClick = { 
                             // Solo validar formato, no enviar código aún
                         }) {
                             Text("✓", color = ValidationSuccess)
-                        }
-                    } else if (showVerificationCode) {
-                        TextButton(onClick = { 
-                            // Permitir cambiar email pero reiniciar proceso
-                            showVerificationCode = false
-                            emailLocked = ""
-                            verificationCode = ""
-                        }) {
-                            Text("Cambiar", color = ValidationWarning)
                         }
                     }
                 }
@@ -204,120 +172,68 @@ private fun ForgotPasswordContent(
             }
         }
 
-        // Campo de nueva contraseña con validación
-        Column {
-            OutlinedTextField(
-                value = password,
-                onValueChange = { password = it },
-                label = { Text("Nueva contraseña") },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth().height(62.dp),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                isError = passwordValidation.state == ValidationState.INVALID,
-                trailingIcon = {
-                    TextButton(onClick = { passwordVisible = !passwordVisible }) {
-                        Text(if (passwordVisible) "Ocultar" else "Mostrar")
-                    }
-                }
-            )
-            if (passwordValidation.showMessage) {
-                Text(
-                    text = passwordValidation.message,
-                    color = when (passwordValidation.state) {
-                        ValidationState.VALID -> ValidationSuccess
-                        ValidationState.INVALID -> ValidationError
-                        else -> Color.Unspecified
-                    },
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.padding(start = 16.dp, top = 4.dp)
-                )
-            }
-        }
-
-        // Campo de confirmar contraseña con validación
-        Column {
-            OutlinedTextField(
-                value = confirmPassword,
-                onValueChange = { confirmPassword = it },
-                label = { Text("Confirmar contraseña") },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth().height(62.dp),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                isError = passwordMatchValidation.state == ValidationState.INVALID,
-                trailingIcon = {
-                    TextButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
-                        Text(if (confirmPasswordVisible) "Ocultar" else "Mostrar")
-                    }
-                }
-            )
-            if (passwordMatchValidation.showMessage) {
-                Text(
-                    text = passwordMatchValidation.message,
-                    color = when (passwordMatchValidation.state) {
-                        ValidationState.VALID -> ValidationSuccess
-                        ValidationState.INVALID -> ValidationError
-                        else -> Color.Unspecified
-                    },
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.padding(start = 16.dp, top = 4.dp)
-                )
-            }
-        }
-
-        // Segunda fase simplificada con enlace por email
-        if (showVerificationCode) {
+        // Mensaje de éxito
+        if (showSuccessMessage) {
             Text(
-                text = "Te enviamos un enlace para reestablecer tu contraseña a: $emailLocked",
+                text = "Te enviamos un enlace para restablecer tu contraseña a: $email",
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color(0xFF4CAF50),
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
+            Text(
+                text = "📧 Revisa tu bandeja de entrada y spam. Usa el código que aparece en la consola para continuar.",
                 style = MaterialTheme.typography.bodySmall,
-                color = Color(0xFF64748B)
+                color = Color(0xFF3B82F6),
+                modifier = Modifier.padding(vertical = 4.dp)
+            )
+        }
+
+        // Mensaje de error
+        errorMessage?.let { msg ->
+            Text(
+                text = msg,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(top = 8.dp)
             )
         }
 
         // Botón de reestablecer contraseña
         Button(
             onClick = {
-                if (!showVerificationCode) {
-                    if (isValidEmail(email) && passwordValidation.state == ValidationState.VALID && passwordMatchValidation.state == ValidationState.VALID) {
-                        scope.launch {
-                            try {
-                                repo.resetPasswordForEmail(email)
-                                showVerificationCode = true
-                                emailLocked = email
-                            } catch (_: Throwable) {
-                                // TODO: mostrar error
-                            }
-                        }
+                if (!isResetDisabled) {
+                    // Mostrar "Próximamente" por 2 segundos
+                    resetButtonText = "Próximamente"
+                    isResetDisabled = true
+                    
+                    scope.launch {
+                        kotlinx.coroutines.delay(2000)
+                        resetButtonText = "Enviar enlace de restablecimiento"
+                        isResetDisabled = false
                     }
-                } else {
-                    // Ya confirmé (vía enlace) -> volvemos a Login
-                    onNavigateToLogin()
                 }
             },
             modifier = Modifier.fillMaxWidth().height(48.dp),
-            enabled = if (!showVerificationCode) {
-                isValidEmail(email) && passwordValidation.state == ValidationState.VALID && passwordMatchValidation.state == ValidationState.VALID
-            } else {
-                true
-            },
+            enabled = !isResetDisabled && isValidEmail(email),
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF1877F2),
+                containerColor = if (isResetDisabled) Color(0xFF9CA3AF) else Color(0xFF1877F2),
                 contentColor = Color.White
             )
         ) {
-            Text(if (showVerificationCode) "Ya confirmé" else "Enviar enlace de reestablecimiento")
+            Text(resetButtonText)
         }
 
-        // Enlace de regreso a Login
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text("¿Recordaste tu contraseña? ")
-            TextButton(onClick = { onNavigateToLogin() }) { 
-                Text("Inicia sesión") 
+        // Enlace de regreso a Login (solo si no se ha enviado el enlace)
+        if (!showSuccessMessage) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("¿Recordaste tu contraseña? ")
+                TextButton(onClick = { onNavigateToLogin() }) { 
+                    Text("Inicia sesión") 
+                }
             }
         }
 
