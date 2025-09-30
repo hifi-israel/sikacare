@@ -6,13 +6,8 @@ import com.israeljuarez.sikacorekmp.core.SupabaseProvider
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.Google
 
-@Composable
-actual fun rememberGoogleAuthProvider(): GoogleAuthProvider {
-    return remember { GoogleAuthProvider() }
-}
-
-actual class GoogleAuthProvider {
-    actual suspend fun signInWithGoogle(): Result<Unit> {
+class JvmGoogleAuthProvider : GoogleAuthProvider {
+    override suspend fun signInWithGoogle(): Result<Unit> {
         return try {
             println("🔵 [JVM] Iniciando Google Auth para JVM...")
             // Desktop/JVM usa el flujo OAuth estándar
@@ -24,4 +19,9 @@ actual class GoogleAuthProvider {
             Result.failure(e)
         }
     }
+}
+
+@Composable
+actual fun rememberGoogleAuthProvider(): GoogleAuthProvider {
+    return remember { JvmGoogleAuthProvider() }
 }

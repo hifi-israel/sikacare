@@ -62,15 +62,15 @@ class OnboardingViewModel(
         ),
         OnboardingScreen(
             id = 2,
-            title = "Tu seguridad es prioridad",
-            description = "Usamos con responsabilidad tu historia médica y protegemos tus datos personales.",
+            title = "Citas médicas a un click",
+            description = "Revisa, agenda y controla todas tus citas médicas en un sólo lugar.",
             imageUrl = "imagen_vista2",
             orderIndex = 2
         ),
         OnboardingScreen(
             id = 3,
-            title = "¡Comencemos!",
-            description = "Estás listo para comenzar tu viaje hacia una mejor salud con SikaCare.",
+            title = "Tu seguridad es prioridad",
+            description = "Usamos con responsabilidad tu historia médica y protegemos tus datos personales.",
             imageUrl = "imagen_vista3",
             orderIndex = 3
         )

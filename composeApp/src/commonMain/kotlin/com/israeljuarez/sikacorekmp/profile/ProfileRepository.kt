@@ -19,9 +19,19 @@ data class Profile(
 
 @Serializable
 private data class ProfileUpdate(
+    val full_name: String? = null,
+    val phone: String? = null,
     val gender: String? = null,
     val birthdate: String? = null,
+    val avatar_id: Int? = null,
     val is_onboarding_seen: Boolean? = null
+)
+
+@Serializable
+data class Avatar(
+    val id: Int,
+    val icon_url: String,
+    val name: String
 )
 
 class ProfileRepository(
@@ -36,11 +46,20 @@ class ProfileRepository(
         return result.decodeList<Profile>().firstOrNull()
     }
 
-    suspend fun finishOnboarding(gender: String, birthdate: String) {
+    suspend fun finishOnboarding(
+        fullName: String,
+        phone: String,
+        gender: String,
+        birthdate: String,
+        avatarId: Int
+    ) {
         val userId = client.auth.currentUserOrNull()?.id ?: return
         val body = ProfileUpdate(
+            full_name = fullName,
+            phone = phone,
             gender = gender,
             birthdate = birthdate,
+            avatar_id = avatarId,
             is_onboarding_seen = true
         )
         client.postgrest["profiles"].update(body) {
@@ -53,6 +72,24 @@ class ProfileRepository(
         val body = ProfileUpdate(is_onboarding_seen = seen)
         client.postgrest["profiles"].update(body) {
             filter { eq("user_id", userId) }
+        }
+    }
+    
+    suspend fun updatePhone(phone: String) {
+        val userId = client.auth.currentUserOrNull()?.id ?: return
+        val body = ProfileUpdate(phone = phone)
+        client.postgrest["profiles"].update(body) {
+            filter { eq("user_id", userId) }
+        }
+    }
+    
+    suspend fun getAvatars(): List<Avatar> {
+        return try {
+            val result = client.postgrest["avatars"].select()
+            result.decodeList<Avatar>()
+        } catch (e: Exception) {
+            println("Error obteniendo avatares: ${e.message}")
+            emptyList()
         }
     }
 }
