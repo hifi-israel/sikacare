@@ -23,6 +23,9 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import org.jetbrains.compose.resources.painterResource
@@ -149,16 +152,31 @@ private fun OnboardingContent(
     // Determinar si es usuario de Google
     val isGoogleUser = remember { userProfile.verificationMethod == "google" }
     
-    // Cargar avatares al iniciar
+    // Cargar avatares al iniciar o usar valores por defecto
     LaunchedEffect(Unit) {
         scope.launch {
             try {
                 avatars = profileRepo.getAvatars()
-                if (avatars.isNotEmpty()) {
-                    selectedAvatarId = avatars.first().id
+                if (avatars.isEmpty()) {
+                    // Si no hay avatares en la BD, crear unos por defecto
+                    avatars = listOf(
+                        com.israeljuarez.sikacorekmp.profile.Avatar(1, "", "Avatar 1"),
+                        com.israeljuarez.sikacorekmp.profile.Avatar(2, "", "Avatar 2"),
+                        com.israeljuarez.sikacorekmp.profile.Avatar(3, "", "Avatar 3"),
+                        com.israeljuarez.sikacorekmp.profile.Avatar(4, "", "Avatar 4"),
+                        com.israeljuarez.sikacorekmp.profile.Avatar(5, "", "Avatar 5")
+                    )
                 }
+                selectedAvatarId = avatars.first().id
             } catch (e: Exception) {
                 println("Error cargando avatares: ${e.message}")
+                // Usar avatares por defecto si hay error
+                avatars = listOf(
+                    com.israeljuarez.sikacorekmp.profile.Avatar(1, "", "Avatar 1"),
+                    com.israeljuarez.sikacorekmp.profile.Avatar(2, "", "Avatar 2"),
+                    com.israeljuarez.sikacorekmp.profile.Avatar(3, "", "Avatar 3")
+                )
+                selectedAvatarId = 1
             }
         }
     }
@@ -170,7 +188,7 @@ private fun OnboardingContent(
     ) {
         Spacer(Modifier.height(8.dp))
 
-        // Header con avatar
+        // Header con título
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -181,13 +199,6 @@ private fun OnboardingContent(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // Selección de Avatar
-                Text(
-                    text = "Selecciona tu avatar:",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = Color(0xFF1F2937),
-                    modifier = Modifier.fillMaxWidth()
-                )
                 Text(
                     text = "Completa tu perfil",
                     style = MaterialTheme.typography.headlineSmall,
@@ -195,12 +206,83 @@ private fun OnboardingContent(
                     color = Color(0xFF1F2937)
                 )
                 
-        Text(
+                Text(
                     text = "Necesitamos algunos datos adicionales para personalizar tu experiencia",
-            style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.bodyMedium,
                     color = Color(0xFF6B7280),
                     textAlign = TextAlign.Center
                 )
+                
+                // Selección de Avatar
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = "Selecciona tu avatar:",
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Medium,
+                    color = Color(0xFF1F2937),
+                    modifier = Modifier.fillMaxWidth()
+                )
+                
+                // Mostrar avatares
+                if (avatars.isNotEmpty()) {
+                    LazyRow(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        contentPadding = PaddingValues(horizontal = 8.dp)
+                    ) {
+                        items(avatars.size) { index ->
+                            val avatar = avatars[index]
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier.clickable { selectedAvatarId = avatar.id }
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(72.dp)
+                                        .clip(CircleShape)
+                                        .background(
+                                            if (selectedAvatarId == avatar.id) Color(0xFF1877F2).copy(alpha = 0.2f)
+                                            else Color(0xFFE5E7EB)
+                                        )
+                                        .padding(4.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    // Usar diferentes iconos o colores para cada avatar
+                                    Icon(
+                                        painter = painterResource(Res.drawable.person),
+                                        contentDescription = avatar.name,
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .padding(12.dp),
+                                        tint = if (selectedAvatarId == avatar.id) Color(0xFF1877F2) else Color(0xFF6B7280)
+                                    )
+                                }
+                                // Nombre del avatar
+                                Text(
+                                    text = avatar.name,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = if (selectedAvatarId == avatar.id) Color(0xFF1877F2) else Color(0xFF6B7280),
+                                    modifier = Modifier.padding(top = 4.dp)
+                                )
+                            }
+                        }
+                    }
+                } else {
+                    // Loading placeholder
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        repeat(3) {
+                            Box(
+                                modifier = Modifier
+                                    .size(72.dp)
+                                    .clip(CircleShape)
+                                    .background(Color(0xFFE5E7EB).copy(alpha = 0.5f))
+                            )
+                        }
+                    }
+                }
             }
         }
 
@@ -298,27 +380,139 @@ private fun OnboardingContent(
                     }
                 )
                 
-                // Campo de fecha de nacimiento con DatePicker
-                OutlinedTextField(
-                    value = birthdate,
-                    onValueChange = { },
-                    label = { Text("Fecha de nacimiento") },
+                // Selector de fecha de nacimiento estilo Google
+                Text(
+                    text = "Fecha de nacimiento",
+                    style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { showDatePicker = true },
-                    enabled = false,
-                    singleLine = true,
-                    placeholder = { Text("DD/MM/AAAA") },
-                    leadingIcon = {
-                        Icon(painter = painterResource(Res.drawable.calendar), contentDescription = null)
-                    },
-                    colors = OutlinedTextFieldDefaults.colors(
-                        disabledTextColor = MaterialTheme.colorScheme.onSurface,
-                        disabledBorderColor = MaterialTheme.colorScheme.outline,
-                        disabledLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                        disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                        .padding(bottom = 8.dp)
                 )
+                
+                var selectedDay by remember { mutableStateOf("") }
+                var selectedMonth by remember { mutableStateOf("") }
+                var selectedYear by remember { mutableStateOf("") }
+                
+                // Actualizar birthdate cuando cambian los valores
+                LaunchedEffect(selectedDay, selectedMonth, selectedYear) {
+                    if (selectedDay.isNotEmpty() && selectedMonth.isNotEmpty() && selectedYear.isNotEmpty()) {
+                        // Formato YYYY-MM-DD para la base de datos
+                        birthdate = "$selectedYear-${selectedMonth.padStart(2, '0')}-${selectedDay.padStart(2, '0')}"
+                    }
+                }
+                
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    // Dropdown para día
+                    var expandedDay by remember { mutableStateOf(false) }
+                    Box(modifier = Modifier.weight(1f)) {
+                        OutlinedTextField(
+                            value = selectedDay,
+                            onValueChange = { },
+                            label = { Text("Día") },
+                            readOnly = true,
+                            trailingIcon = {
+                                Icon(
+                                    imageVector = if (expandedDay) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                                    contentDescription = null
+                                )
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { expandedDay = true }
+                        )
+                        DropdownMenu(
+                            expanded = expandedDay,
+                            onDismissRequest = { expandedDay = false }
+                        ) {
+                            (1..31).forEach { day ->
+                                DropdownMenuItem(
+                                    text = { Text(day.toString()) },
+                                    onClick = {
+                                        selectedDay = day.toString()
+                                        expandedDay = false
+                                    }
+                                )
+                            }
+                        }
+                    }
+                    
+                    // Dropdown para mes
+                    var expandedMonth by remember { mutableStateOf(false) }
+                    val months = listOf(
+                        "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+                        "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+                    )
+                    Box(modifier = Modifier.weight(1.5f)) {
+                        OutlinedTextField(
+                            value = if (selectedMonth.isNotEmpty()) months[selectedMonth.toInt() - 1] else "",
+                            onValueChange = { },
+                            label = { Text("Mes") },
+                            readOnly = true,
+                            trailingIcon = {
+                                Icon(
+                                    imageVector = if (expandedMonth) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                                    contentDescription = null
+                                )
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { expandedMonth = true }
+                        )
+                        DropdownMenu(
+                            expanded = expandedMonth,
+                            onDismissRequest = { expandedMonth = false }
+                        ) {
+                            months.forEachIndexed { index, month ->
+                                DropdownMenuItem(
+                                    text = { Text(month) },
+                                    onClick = {
+                                        selectedMonth = (index + 1).toString()
+                                        expandedMonth = false
+                                    }
+                                )
+                            }
+                        }
+                    }
+                    
+                    // Dropdown para año
+                    var expandedYear by remember { mutableStateOf(false) }
+                    val currentYear = 2024
+                    val years = (currentYear downTo 1920).toList()
+                    Box(modifier = Modifier.weight(1f)) {
+                        OutlinedTextField(
+                            value = selectedYear,
+                            onValueChange = { },
+                            label = { Text("Año") },
+                            readOnly = true,
+                            trailingIcon = {
+                                Icon(
+                                    imageVector = if (expandedYear) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                                    contentDescription = null
+                                )
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { expandedYear = true }
+                        )
+                        DropdownMenu(
+                            expanded = expandedYear,
+                            onDismissRequest = { expandedYear = false }
+                        ) {
+                            years.forEach { year ->
+                                DropdownMenuItem(
+                                    text = { Text(year.toString()) },
+                                    onClick = {
+                                        selectedYear = year.toString()
+                                        expandedYear = false
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
 
                 // Campo de email (solo lectura)
         OutlinedTextField(
