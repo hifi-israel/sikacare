@@ -30,8 +30,10 @@ private data class ProfileUpdate(
 @Serializable
 data class Avatar(
     val id: Int,
-    val icon_url: String,
-    val name: String
+    val key: String,
+    val name: String,
+    val image_url: String,
+    val active: Boolean = true
 )
 
 class ProfileRepository(
@@ -85,7 +87,9 @@ class ProfileRepository(
     
     suspend fun getAvatars(): List<Avatar> {
         return try {
-            val result = client.postgrest["avatars"].select()
+            val result = client.postgrest["avatars"].select {
+                filter { eq("active", true) }
+            }
             result.decodeList<Avatar>()
         } catch (e: Exception) {
             println("Error obteniendo avatares: ${e.message}")

@@ -50,6 +50,8 @@ kotlin {
             implementation("io.ktor:ktor-client-json:2.3.12")
             implementation("io.ktor:ktor-client-serialization:2.3.12")
             implementation("io.ktor:ktor-client-logging:2.3.12")
+            // Coil para cargar imágenes desde URLs
+            implementation("io.coil-kt.coil3:coil-compose:3.0.2")
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

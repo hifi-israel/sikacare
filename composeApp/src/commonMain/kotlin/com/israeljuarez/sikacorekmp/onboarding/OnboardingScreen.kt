@@ -11,7 +11,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.collectAsState
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.text.KeyboardOptions
@@ -23,11 +22,34 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import coil3.compose.AsyncImage
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.IconButton
+import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.ui.Alignment
 import org.jetbrains.compose.resources.painterResource
 import com.israeljuarez.sikacorekmp.getPlatform
 import sikacore.composeapp.generated.resources.Res
@@ -39,10 +61,14 @@ import sikacore.composeapp.generated.resources.check
 import com.israeljuarez.sikacorekmp.auth.AuthRepository
 import com.israeljuarez.sikacorekmp.login.SharedCurvedContainerCanvas
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Popup
 import kotlinx.coroutines.launch
+import kotlinx.datetime.LocalDate
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OnboardingScreen(
     onNavigateToHome: () -> Unit = {},
@@ -117,6 +143,7 @@ fun OnboardingScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun OnboardingContent(
     modifier: Modifier = Modifier,
@@ -124,10 +151,8 @@ private fun OnboardingContent(
     onLogout: () -> Unit
 ) {
     val viewModel = remember { OnboardingViewModel() }
-    val currentStep by viewModel.currentStep.collectAsState()
     val userProfile by viewModel.userProfile.collectAsState()
     val isEmailVerified by viewModel.isEmailVerified.collectAsState()
-    val isViewModelLoading by viewModel.isLoading.collectAsState()
     
     var fullName by remember { mutableStateOf(userProfile.fullName) }
     var phone by remember { mutableStateOf("") }
@@ -139,7 +164,6 @@ private fun OnboardingContent(
     var showCodeInput by remember { mutableStateOf(false) }
     var codeSent by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
-    var showDatePicker by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(false) }
     
     val scope = rememberCoroutineScope()
@@ -158,13 +182,15 @@ private fun OnboardingContent(
             try {
                 avatars = profileRepo.getAvatars()
                 if (avatars.isEmpty()) {
+                    println("Avatares cargados: $avatars")
                     // Si no hay avatares en la BD, crear unos por defecto
                     avatars = listOf(
-                        com.israeljuarez.sikacorekmp.profile.Avatar(1, "", "Avatar 1"),
-                        com.israeljuarez.sikacorekmp.profile.Avatar(2, "", "Avatar 2"),
-                        com.israeljuarez.sikacorekmp.profile.Avatar(3, "", "Avatar 3"),
-                        com.israeljuarez.sikacorekmp.profile.Avatar(4, "", "Avatar 4"),
-                        com.israeljuarez.sikacorekmp.profile.Avatar(5, "", "Avatar 5")
+
+                        com.israeljuarez.sikacorekmp.profile.Avatar(1, "avatar_1", "Avatar 1", ""),
+                        com.israeljuarez.sikacorekmp.profile.Avatar(2, "avatar_2", "Avatar 2", ""),
+                        com.israeljuarez.sikacorekmp.profile.Avatar(3, "avatar_3", "Avatar 3", ""),
+                        com.israeljuarez.sikacorekmp.profile.Avatar(4, "avatar_4", "Avatar 4", ""),
+                        com.israeljuarez.sikacorekmp.profile.Avatar(5, "avatar_5", "Avatar 5", "")
                     )
                 }
                 selectedAvatarId = avatars.first().id
@@ -172,9 +198,9 @@ private fun OnboardingContent(
                 println("Error cargando avatares: ${e.message}")
                 // Usar avatares por defecto si hay error
                 avatars = listOf(
-                    com.israeljuarez.sikacorekmp.profile.Avatar(1, "", "Avatar 1"),
-                    com.israeljuarez.sikacorekmp.profile.Avatar(2, "", "Avatar 2"),
-                    com.israeljuarez.sikacorekmp.profile.Avatar(3, "", "Avatar 3")
+                    com.israeljuarez.sikacorekmp.profile.Avatar(1, "avatar_1", "Avatar 1", ""),
+                    com.israeljuarez.sikacorekmp.profile.Avatar(2, "avatar_2", "Avatar 2", ""),
+                    com.israeljuarez.sikacorekmp.profile.Avatar(3, "avatar_3", "Avatar 3", "")
                 )
                 selectedAvatarId = 1
             }
@@ -247,15 +273,29 @@ private fun OnboardingContent(
                                         .padding(4.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    // Usar diferentes iconos o colores para cada avatar
+                                    // Cargar imagen real del avatar desde Supabase
+                                    if (avatar.image_url.isNotEmpty()) {
+                                        AsyncImage(
+                                            model = avatar.image_url,
+                                            contentDescription = avatar.name,
+                                            modifier = Modifier
+                                                .fillMaxSize()
+                                                .padding(4.dp),
+                                            contentScale = ContentScale.Crop,
+                                            error = painterResource(Res.drawable.person),
+                                            placeholder = painterResource(Res.drawable.person)
+                                        )
+                                    } else {
+                                        // Fallback: icono genérico si no hay imagen
                                     Icon(
                                         painter = painterResource(Res.drawable.person),
                                         contentDescription = avatar.name,
                                         modifier = Modifier
                                             .fillMaxSize()
                                             .padding(12.dp),
-                                        tint = if (selectedAvatarId == avatar.id) Color(0xFF1877F2) else Color(0xFF6B7280)
+                                            tint = if (selectedAvatarId == avatar.id) Color.White else Color(0xFF6B7280)
                                     )
+                                    }
                                 }
                                 // Nombre del avatar
                                 Text(
@@ -368,7 +408,7 @@ private fun OnboardingContent(
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    placeholder = { Text("12345678") },
+                    placeholder = { Text("84148665") },
                     leadingIcon = {
                         Icon(painter = painterResource(Res.drawable.phone), contentDescription = null)
                     },
@@ -380,7 +420,7 @@ private fun OnboardingContent(
                     }
                 )
                 
-                // Selector de fecha de nacimiento estilo Google
+                // Selector de fecha de nacimiento simplificado
                 Text(
                     text = "Fecha de nacimiento",
                     style = MaterialTheme.typography.bodyLarge,
@@ -389,129 +429,256 @@ private fun OnboardingContent(
                         .padding(bottom = 8.dp)
                 )
                 
+                var showDatePicker by remember { mutableStateOf(false) }
                 var selectedDay by remember { mutableStateOf("") }
                 var selectedMonth by remember { mutableStateOf("") }
                 var selectedYear by remember { mutableStateOf("") }
                 
+                // Obtener fecha actual dinámicamente
+                val currentDate = remember { getCurrentDate() }
+                val currentYear = currentDate.year
+                val currentMonth = currentDate.month
+                val currentDay = currentDate.day
+                
+                // Formatear fecha para mostrar
+                val formattedDate = if (selectedDay.isNotEmpty() && selectedMonth.isNotEmpty() && selectedYear.isNotEmpty()) {
+                    val month = selectedMonth.padStart(2, '0')
+                    val day = selectedDay.padStart(2, '0')
+                    "$month/$day/$selectedYear"
+                } else ""
+                
                 // Actualizar birthdate cuando cambian los valores
                 LaunchedEffect(selectedDay, selectedMonth, selectedYear) {
                     if (selectedDay.isNotEmpty() && selectedMonth.isNotEmpty() && selectedYear.isNotEmpty()) {
-                        // Formato YYYY-MM-DD para la base de datos
-                        birthdate = "$selectedYear-${selectedMonth.padStart(2, '0')}-${selectedDay.padStart(2, '0')}"
+                        val day = selectedDay.toIntOrNull() ?: 0
+                        val month = selectedMonth.toIntOrNull() ?: 0
+                        val year = selectedYear.toIntOrNull() ?: 0
+                        
+                        // Validar que no sea una fecha futura
+                        if (!isFutureDate(day, month, year)) {
+                            // Formato YYYY-MM-DD para PostgreSQL
+                            birthdate = "$selectedYear-${selectedMonth.padStart(2, '0')}-${selectedDay.padStart(2, '0')}"
+                        } else {
+                            // Si es fecha futura, limpiar la selección
+                            selectedDay = ""
+                            selectedMonth = ""
+                            selectedYear = ""
+                        }
                     }
                 }
                 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    // Dropdown para día
-                    var expandedDay by remember { mutableStateOf(false) }
-                    Box(modifier = Modifier.weight(1f)) {
-                        OutlinedTextField(
-                            value = selectedDay,
-                            onValueChange = { },
-                            label = { Text("Día") },
-                            readOnly = true,
-                            trailingIcon = {
-                                Icon(
-                                    imageVector = if (expandedDay) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                                    contentDescription = null
-                                )
-                            },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { expandedDay = true }
-                        )
-                        DropdownMenu(
-                            expanded = expandedDay,
-                            onDismissRequest = { expandedDay = false }
+                // Campo de texto para mostrar la fecha
+                OutlinedTextField(
+                    value = formattedDate,
+                    onValueChange = { },
+                    label = { Text("Fecha de nacimiento") },
+                    placeholder = { Text("MM/DD/YYYY") },
+                    readOnly = true,
+                    trailingIcon = {
+                        IconButton(onClick = { showDatePicker = !showDatePicker }) {
+                            Text("📅")
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(64.dp)
+                )
+
+                // Modal de selección de fecha
+                if (showDatePicker) {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
-                            (1..31).forEach { day ->
-                                DropdownMenuItem(
-                                    text = { Text(day.toString()) },
-                                    onClick = {
-                                        selectedDay = day.toString()
-                                        expandedDay = false
+                            Text(
+                                text = "Seleccionar fecha",
+                                style = MaterialTheme.typography.headlineSmall
+                            )
+                            
+                            // Selectores de fecha
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                // Día
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text("Día", style = MaterialTheme.typography.labelMedium)
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    var expandedDay by remember { mutableStateOf(false) }
+                                    Box {
+                                        OutlinedTextField(
+                                            value = selectedDay,
+                                            onValueChange = { 
+                                                if (it.length <= 2 && (it.isEmpty() || it.toIntOrNull()?.let { num -> num in 1..31 } == true)) {
+                                                    selectedDay = it
+                                                }
+                                            },
+                                            placeholder = { Text("DD") },
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .height(56.dp),
+                                            textStyle = MaterialTheme.typography.bodyLarge
+                                        )
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .height(56.dp)
+                                                .clickable { expandedDay = true }
+                                        )
+                                        DropdownMenu(
+                                            expanded = expandedDay,
+                                            onDismissRequest = { expandedDay = false },
+                                            modifier = Modifier.heightIn(max = 180.dp) // Limitar a ~3 elementos
+                                        ) {
+                                            (1..31).forEach { day ->
+                                                DropdownMenuItem(
+                                                    text = { Text(day.toString()) },
+                                                    onClick = {
+                                                        selectedDay = day.toString()
+                                                        expandedDay = false
+                                                    }
+                                                )
+                                            }
+                                        }
                                     }
-                                )
+                                }
+                                
+                                // Mes
+                                Column(modifier = Modifier.weight(1.5f)) {
+                                    Text("Mes", style = MaterialTheme.typography.labelMedium)
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    var expandedMonth by remember { mutableStateOf(false) }
+                                    val months = listOf(
+                                        "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+                                        "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+                                    )
+                                    Box {
+                                        OutlinedTextField(
+                                            value = if (selectedMonth.isNotEmpty()) months[selectedMonth.toInt() - 1] else "",
+                                            onValueChange = { },
+                                            placeholder = { Text("Mes") },
+                                            readOnly = true,
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .height(56.dp),
+                                            textStyle = MaterialTheme.typography.bodyLarge
+                                        )
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .height(56.dp)
+                                                .clickable { expandedMonth = true }
+                                        )
+                                        DropdownMenu(
+                                            expanded = expandedMonth,
+                                            onDismissRequest = { expandedMonth = false },
+                                            modifier = Modifier.heightIn(max = 180.dp) // Limitar a ~3 elementos
+                                        ) {
+                                            months.forEachIndexed { index, month ->
+                                                DropdownMenuItem(
+                                                    text = { Text(month) },
+                                                    onClick = {
+                                                        selectedMonth = (index + 1).toString()
+                                                        expandedMonth = false
+                                                    }
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                                
+                                // Año
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text("Año", style = MaterialTheme.typography.labelMedium)
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    var expandedYear by remember { mutableStateOf(false) }
+                                    Box {
+                                        OutlinedTextField(
+                                            value = selectedYear,
+                                            onValueChange = { 
+                                                if (it.length <= 4 && (it.isEmpty() || it.toIntOrNull()?.let { num -> num in 1920..currentYear } == true)) {
+                                                    selectedYear = it
+                                                }
+                                            },
+                                            placeholder = { Text("YYYY") },
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .height(56.dp),
+                                            textStyle = MaterialTheme.typography.bodyLarge
+                                        )
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .height(56.dp)
+                                                .clickable { expandedYear = true }
+                                        )
+                                        DropdownMenu(
+                                            expanded = expandedYear,
+                                            onDismissRequest = { expandedYear = false },
+                                            modifier = Modifier.heightIn(max = 180.dp) // Limitar a ~3 elementos
+                                        ) {
+                                            (currentYear downTo 1920).forEach { year ->
+                                                DropdownMenuItem(
+                                                    text = { Text(year.toString()) },
+                                                    onClick = {
+                                                        selectedYear = year.toString()
+                                                        expandedYear = false
+                                                    }
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            
+                            // Botones
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Button(
+                                    onClick = { showDatePicker = false },
+                                    modifier = Modifier.weight(1f),
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = Color(0xFF6B7280)
+                                    )
+                                ) {
+                                    Text("Cancelar")
+                                }
+                                Button(
+                                    onClick = { showDatePicker = false },
+                                    modifier = Modifier.weight(1f),
+                                    enabled = selectedDay.isNotEmpty() && selectedMonth.isNotEmpty() && selectedYear.isNotEmpty()
+                                ) {
+                                    Text("Confirmar")
+                                }
                             }
                         }
                     }
-                    
-                    // Dropdown para mes
-                    var expandedMonth by remember { mutableStateOf(false) }
-                    val months = listOf(
-                        "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-                        "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+                }
+                
+                // Mostrar fecha seleccionada o error
+                if (formattedDate.isNotEmpty()) {
+                    Text(
+                        text = "Fecha seleccionada: $formattedDate",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color(0xFF4CAF50),
+                        modifier = Modifier.padding(top = 8.dp)
                     )
-                    Box(modifier = Modifier.weight(1.5f)) {
-                        OutlinedTextField(
-                            value = if (selectedMonth.isNotEmpty()) months[selectedMonth.toInt() - 1] else "",
-                            onValueChange = { },
-                            label = { Text("Mes") },
-                            readOnly = true,
-                            trailingIcon = {
-                                Icon(
-                                    imageVector = if (expandedMonth) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                                    contentDescription = null
-                                )
-                            },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { expandedMonth = true }
-                        )
-                        DropdownMenu(
-                            expanded = expandedMonth,
-                            onDismissRequest = { expandedMonth = false }
-                        ) {
-                            months.forEachIndexed { index, month ->
-                                DropdownMenuItem(
-                                    text = { Text(month) },
-                                    onClick = {
-                                        selectedMonth = (index + 1).toString()
-                                        expandedMonth = false
-                                    }
-                                )
-                            }
-                        }
-                    }
-                    
-                    // Dropdown para año
-                    var expandedYear by remember { mutableStateOf(false) }
-                    val currentYear = 2024
-                    val years = (currentYear downTo 1920).toList()
-                    Box(modifier = Modifier.weight(1f)) {
-                        OutlinedTextField(
-                            value = selectedYear,
-                            onValueChange = { },
-                            label = { Text("Año") },
-                            readOnly = true,
-                            trailingIcon = {
-                                Icon(
-                                    imageVector = if (expandedYear) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                                    contentDescription = null
-                                )
-                            },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { expandedYear = true }
-                        )
-                        DropdownMenu(
-                            expanded = expandedYear,
-                            onDismissRequest = { expandedYear = false }
-                        ) {
-                            years.forEach { year ->
-                                DropdownMenuItem(
-                                    text = { Text(year.toString()) },
-                                    onClick = {
-                                        selectedYear = year.toString()
-                                        expandedYear = false
-                                    }
-                                )
-                            }
-                        }
-                    }
+                } else if (selectedDay.isNotEmpty() || selectedMonth.isNotEmpty() || selectedYear.isNotEmpty()) {
+                    Text(
+                        text = "⚠️ Debe completar todos los capos.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color(0xFFF44336),
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
                 }
 
                 // Campo de email (solo lectura)
@@ -693,7 +860,7 @@ private fun OnboardingContent(
                         fullName.isEmpty() -> "El nombre completo es obligatorio"
                         phone.isEmpty() -> "El teléfono es obligatorio"
                         selectedGender.isEmpty() -> "Por favor selecciona tu género"
-                        birthdate.isEmpty() -> "Por favor ingresa tu fecha de nacimiento"
+                        birthdate.isEmpty() -> "Por favor selecciona tu fecha de nacimiento"
                         else -> "Por favor completa todos los campos"
                     }
                 }
@@ -729,5 +896,19 @@ private fun OnboardingContent(
         }
 
         Spacer(Modifier.height(16.dp))
+    }
+}
+
+// Función expect para obtener la fecha actual del dispositivo
+expect fun getCurrentDate(): LocalDate
+
+// Función para validar si una fecha es futura
+fun isFutureDate(day: Int, month: Int, year: Int): Boolean {
+    return try {
+        val selectedDate = LocalDate(year, month, day)
+        val currentDate = getCurrentDate()
+        selectedDate > currentDate
+    } catch (e: Exception) {
+        false
     }
 }
