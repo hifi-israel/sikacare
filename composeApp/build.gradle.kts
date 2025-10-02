@@ -52,6 +52,7 @@ kotlin {
             implementation("io.ktor:ktor-client-logging:2.3.12")
             // Coil para cargar imágenes desde URLs
             implementation("io.coil-kt.coil3:coil-compose:3.0.2")
+            implementation("io.coil-kt.coil3:coil-network-ktor3:3.0.2")
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
@@ -62,6 +63,8 @@ kotlin {
             implementation("androidx.core:core-splashscreen:1.0.1")
             // Ktor engine for Android/JVM
             implementation(libs.ktorClientOkhttp)
+            // Coil network engine para Android
+            implementation("io.coil-kt.coil3:coil-network-okhttp:3.0.2")
             // Google Sign-In for Android
             implementation("androidx.credentials:credentials:1.2.2")
             implementation("com.google.android.libraries.identity.googleid:googleid:1.1.0")
@@ -76,6 +79,8 @@ kotlin {
             implementation(libs.kotlinx.coroutinesSwing)
             // Ktor engine for Desktop JVM
             implementation(libs.ktorClientOkhttp)
+            // Coil network engine para JVM/Desktop
+            implementation("io.coil-kt.coil3:coil-network-okhttp:3.0.2")
             // Compose resources for JVM
             implementation(compose.components.resources)
         }

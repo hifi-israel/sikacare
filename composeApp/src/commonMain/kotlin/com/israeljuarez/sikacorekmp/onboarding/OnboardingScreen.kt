@@ -275,6 +275,9 @@ private fun OnboardingContent(
                                 ) {
                                     // Cargar imagen real del avatar desde Supabase
                                     if (avatar.image_url.isNotEmpty()) {
+                                        println("🖼️ [DEBUG] Cargando imagen para avatar ${avatar.name}:")
+                                        println("   - URL: ${avatar.image_url}")
+                                        
                                         AsyncImage(
                                             model = avatar.image_url,
                                             contentDescription = avatar.name,
@@ -283,7 +286,13 @@ private fun OnboardingContent(
                                                 .padding(4.dp),
                                             contentScale = ContentScale.Crop,
                                             error = painterResource(Res.drawable.person),
-                                            placeholder = painterResource(Res.drawable.person)
+                                            placeholder = painterResource(Res.drawable.person),
+                                            onError = { 
+                                                println("❌ [ERROR] Error cargando imagen para ${avatar.name}: ${it.result.throwable?.message}")
+                                            },
+                                            onSuccess = {
+                                                println("✅ [SUCCESS] Imagen cargada exitosamente para ${avatar.name}")
+                                            }
                                         )
                                     } else {
                                         // Fallback: icono genérico si no hay imagen
