@@ -55,22 +55,22 @@ class OnboardingViewModel(
     val introScreens = listOf(
         OnboardingScreen(
             id = 1,
-            title = "Nos preocupamos por ti",
-            description = "Cuéntale a Ben qué necesitas para que te pueda guiar en tu proceso o escríbelo en nuestro chat.",
+            title = "Bienvenido a SikaCare",
+            description = "Tu salud en tus manos. Accede a servicios médicos de calidad desde la comodidad de tu hogar.",
             imageUrl = "Imagen_vista1",
             orderIndex = 1
         ),
         OnboardingScreen(
             id = 2,
-            title = "Citas médicas a un click",
-            description = "Revisa, agenda y controla todas tus citas médicas en un sólo lugar.",
+            title = "Consultas médicas virtuales",
+            description = "Conecta con profesionales de la salud las 24 horas. Consultas seguras y confidenciales.",
             imageUrl = "imagen_vista2",
             orderIndex = 2
         ),
         OnboardingScreen(
             id = 3,
-            title = "Tu seguridad es prioridad",
-            description = "Usamos con responsabilidad tu historia médica y protegemos tus datos personales.",
+            title = "Historial médico seguro",
+            description = "Mantén tu información médica organizada y segura. Acceso fácil cuando lo necesites.",
             imageUrl = "imagen_vista3",
             orderIndex = 3
         )

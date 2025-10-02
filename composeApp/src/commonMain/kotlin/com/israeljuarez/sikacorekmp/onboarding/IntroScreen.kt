@@ -169,14 +169,14 @@ private fun IntroContent(
                     text = screen.title,
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White,
+                    color = Color(0xFF1A1A1A),
                     textAlign = TextAlign.Center
                 )
 
                 Text(
                     text = screen.description,
                     style = MaterialTheme.typography.bodyLarge,
-                    color = Color.White.copy(alpha = 0.95f),
+                    color = Color(0xFF4A4A4A),
                     textAlign = TextAlign.Center,
                     lineHeight = MaterialTheme.typography.bodyLarge.lineHeight * 1.4
                 )
@@ -302,7 +302,7 @@ private fun IntroContent(
             ) {
                 Text(
                     text = "Saltar introducción",
-                    color = Color(0xFF6B7280)
+                    color = Color(0xFF1877F2)
                 )
             }
         }
