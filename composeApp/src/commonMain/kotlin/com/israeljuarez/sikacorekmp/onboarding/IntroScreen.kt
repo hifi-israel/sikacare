@@ -28,7 +28,7 @@ import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 import sikacore.composeapp.generated.resources.Res
 import sikacore.composeapp.generated.resources.Imagen_vista1
-import sikacore.composeapp.generated.resources.imagen_vista2
+import sikacore.composeapp.generated.resources.Imagen_vista2
 import sikacore.composeapp.generated.resources.imagen_vista3
 import sikacore.composeapp.generated.resources.arrow_back
 import sikacore.composeapp.generated.resources.arrow_forward
@@ -42,7 +42,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 private fun getImageResource(step: Int): DrawableResource {
     return when (step) {
         0 -> Res.drawable.Imagen_vista1
-        1 -> Res.drawable.imagen_vista2
+        1 -> Res.drawable.Imagen_vista2
         2 -> Res.drawable.imagen_vista3
         else -> Res.drawable.Imagen_vista1
     }
