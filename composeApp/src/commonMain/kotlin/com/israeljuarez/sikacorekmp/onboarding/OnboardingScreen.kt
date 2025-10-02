@@ -3,6 +3,7 @@ package com.israeljuarez.sikacorekmp.onboarding
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
@@ -266,9 +267,11 @@ private fun OnboardingContent(
                                     modifier = Modifier
                                         .size(72.dp)
                                         .clip(CircleShape)
-                                        .background(
-                                            if (selectedAvatarId == avatar.id) Color(0xFF1877F2).copy(alpha = 0.2f)
-                                            else Color(0xFFE5E7EB)
+                                        .background(Color.White)
+                                        .border(
+                                            width = if (selectedAvatarId == avatar.id) 3.dp else 1.dp,
+                                            color = if (selectedAvatarId == avatar.id) Color(0xFF1877F2) else Color(0xFFE5E7EB),
+                                            shape = CircleShape
                                         )
                                         .padding(4.dp),
                                     contentAlignment = Alignment.Center
@@ -283,7 +286,7 @@ private fun OnboardingContent(
                                             contentDescription = avatar.name,
                                             modifier = Modifier
                                                 .fillMaxSize()
-                                                .padding(4.dp),
+                                                .clip(CircleShape),
                                             contentScale = ContentScale.Crop,
                                             error = painterResource(Res.drawable.person),
                                             placeholder = painterResource(Res.drawable.person),
