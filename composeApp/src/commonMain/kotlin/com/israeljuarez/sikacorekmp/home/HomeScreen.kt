@@ -39,6 +39,10 @@ import com.israeljuarez.sikacorekmp.core.SupabaseProvider
 import kotlinx.coroutines.launch
 import io.github.jan.supabase.auth.auth
 
+/**
+ * Pantalla principal de la aplicación
+ * Muestra avatar del usuario y opción de cerrar sesión
+ */
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,

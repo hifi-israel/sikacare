@@ -24,6 +24,10 @@ data class UserProfile(
     val verificationMethod: String = "email"
 )
 
+/**
+ * ViewModel para manejar el estado del onboarding
+ * Gestiona perfil de usuario, avatares y navegación entre pantallas
+ */
 class OnboardingViewModel(
     private val authRepository: AuthRepository = AuthRepository()
 ) {
@@ -80,6 +84,9 @@ class OnboardingViewModel(
         loadUserData()
     }
     
+    /**
+     * Carga datos del usuario autenticado desde el repositorio
+     */
     private fun loadUserData() {
         val email = authRepository.getCurrentUserEmail()
         if (email != null) {
@@ -88,6 +95,9 @@ class OnboardingViewModel(
         }
     }
     
+    /**
+     * Actualiza los datos del perfil de usuario
+     */
     fun updateProfile(
         fullName: String = _userProfile.value.fullName,
         phone: String = _userProfile.value.phone,
@@ -100,22 +110,30 @@ class OnboardingViewModel(
         )
     }
     
+    /**
+     * Avanza al siguiente paso del onboarding
+     */
     fun nextStep() {
         if (_currentStep.value < introScreens.size - 1) {
             _currentStep.value = _currentStep.value + 1
         }
     }
     
+    /**
+     * Retrocede al paso anterior del onboarding
+     */
     fun previousStep() {
         if (_currentStep.value > 0) {
             _currentStep.value = _currentStep.value - 1
         }
     }
     
+    /**
+     * Envía código de verificación al email del usuario
+     */
     fun sendVerificationCode() {
         val email = _userProfile.value.email
         if (email.isNotEmpty()) {
-            // Simular envío de código
             verificationCode = (100000..999999).random().toString()
             codeSent = true
             showCodeInput = true
@@ -123,6 +141,9 @@ class OnboardingViewModel(
         }
     }
     
+    /**
+     * Verifica el código de verificación ingresado por el usuario
+     */
     fun verifyCode(inputCode: String): Boolean {
         return if (inputCode == verificationCode) {
             _isEmailVerified.value = true

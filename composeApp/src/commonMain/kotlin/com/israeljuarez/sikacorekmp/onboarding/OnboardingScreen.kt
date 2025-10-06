@@ -69,6 +69,10 @@ import androidx.compose.ui.window.Popup
 import kotlinx.coroutines.launch
 import kotlinx.datetime.LocalDate
 
+/**
+ * Pantalla de onboarding para completar perfil de usuario
+ * Incluye selección de avatar y fecha de nacimiento
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OnboardingScreen(
@@ -144,6 +148,10 @@ fun OnboardingScreen(
     }
 }
 
+/**
+ * Contenido principal del onboarding con formulario de perfil
+ * Maneja la lógica de avatar, fecha y validaciones
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun OnboardingContent(
@@ -177,14 +185,11 @@ private fun OnboardingContent(
     // Determinar si es usuario de Google
     val isGoogleUser = remember { userProfile.verificationMethod == "google" }
     
-    // Cargar avatares al iniciar o usar valores por defecto
     LaunchedEffect(Unit) {
         scope.launch {
             try {
                 avatars = profileRepo.getAvatars()
                 if (avatars.isEmpty()) {
-                    println("Avatares cargados: $avatars")
-                    // Si no hay avatares en la BD, crear unos por defecto
                     avatars = listOf(
 
                         com.israeljuarez.sikacorekmp.profile.Avatar(1, "avatar_1", "Avatar 1", ""),
@@ -196,8 +201,6 @@ private fun OnboardingContent(
                 }
                 selectedAvatarId = avatars.first().id
             } catch (e: Exception) {
-                println("Error cargando avatares: ${e.message}")
-                // Usar avatares por defecto si hay error
                 avatars = listOf(
                     com.israeljuarez.sikacorekmp.profile.Avatar(1, "avatar_1", "Avatar 1", ""),
                     com.israeljuarez.sikacorekmp.profile.Avatar(2, "avatar_2", "Avatar 2", ""),
@@ -276,10 +279,7 @@ private fun OnboardingContent(
                                         .padding(4.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    // Cargar imagen real del avatar desde Supabase
                                     if (avatar.image_url.isNotEmpty()) {
-                                        println("🖼️ [DEBUG] Cargando imagen para avatar ${avatar.name}:")
-                                        println("   - URL: ${avatar.image_url}")
                                         
                                         AsyncImage(
                                             model = avatar.image_url,
@@ -291,14 +291,11 @@ private fun OnboardingContent(
                                             error = painterResource(Res.drawable.person),
                                             placeholder = painterResource(Res.drawable.person),
                                             onError = { 
-                                                println("❌ [ERROR] Error cargando imagen para ${avatar.name}: ${it.result.throwable?.message}")
                                             },
                                             onSuccess = {
-                                                println("✅ [SUCCESS] Imagen cargada exitosamente para ${avatar.name}")
                                             }
                                         )
                                     } else {
-                                        // Fallback: icono genérico si no hay imagen
                                     Icon(
                                         painter = painterResource(Res.drawable.person),
                                         contentDescription = avatar.name,
@@ -459,7 +456,6 @@ private fun OnboardingContent(
                     "$month/$day/$selectedYear"
                 } else ""
                 
-                // Actualizar birthdate cuando cambian los valores
                 LaunchedEffect(selectedDay, selectedMonth, selectedYear) {
                     if (selectedDay.isNotEmpty() && selectedMonth.isNotEmpty() && selectedYear.isNotEmpty()) {
                         val day = selectedDay.toIntOrNull() ?: 0
@@ -676,7 +672,6 @@ private fun OnboardingContent(
                     }
                 }
                 
-                // Mostrar fecha seleccionada o error
                 if (formattedDate.isNotEmpty()) {
                     Text(
                         text = "Fecha seleccionada: $formattedDate",
@@ -828,7 +823,6 @@ private fun OnboardingContent(
             }
         }
 
-        // Mensaje de error
         errorMessage?.let { msg ->
             Card(
                 modifier = Modifier.fillMaxWidth(),
@@ -911,10 +905,14 @@ private fun OnboardingContent(
     }
 }
 
-// Función expect para obtener la fecha actual del dispositivo
+/**
+ * Obtiene la fecha actual del dispositivo (implementación específica por plataforma)
+ */
 expect fun getCurrentDate(): LocalDate
 
-// Función para validar si una fecha es futura
+/**
+ * Valida si una fecha seleccionada es futura comparada con la fecha actual
+ */
 fun isFutureDate(day: Int, month: Int, year: Int): Boolean {
     return try {
         val selectedDate = LocalDate(year, month, day)

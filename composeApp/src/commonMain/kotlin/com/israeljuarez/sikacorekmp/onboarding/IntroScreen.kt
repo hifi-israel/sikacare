@@ -37,7 +37,9 @@ import com.israeljuarez.sikacorekmp.profile.ProfileRepository
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.rememberCoroutineScope
 
-// Función para obtener el recurso de imagen según el paso
+/**
+ * Obtiene el recurso de imagen correspondiente al paso actual
+ */
 @Composable
 private fun getImageResource(step: Int): DrawableResource {
     return when (step) {
@@ -48,6 +50,10 @@ private fun getImageResource(step: Int): DrawableResource {
     }
 }
 
+/**
+ * Pantalla de introducción con carrusel de presentación
+ * Muestra información sobre la app con navegación entre pasos
+ */
 @Composable
 fun IntroScreen(
     onFinish: () -> Unit = {},
@@ -122,6 +128,10 @@ fun IntroScreen(
     }
 }
 
+/**
+ * Contenido principal del carrusel de introducción
+ * Maneja la navegación entre pasos y actualización de estado
+ */
 @Composable
 private fun IntroContent(
     modifier: Modifier = Modifier,

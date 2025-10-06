@@ -36,9 +36,16 @@ data class Avatar(
     val active: Boolean = true
 )
 
+/**
+ * Repositorio para operaciones de perfil de usuario y avatares
+ * Maneja la comunicación con Supabase para datos de perfil
+ */
 class ProfileRepository(
     private val client: SupabaseClient = SupabaseProvider.client
 ) {
+    /**
+     * Obtiene el perfil del usuario autenticado desde Supabase
+     */
     suspend fun getProfile(): Profile? {
         val userId = client.auth.currentUserOrNull()?.id ?: return null
         val result = client.postgrest["profiles"].select {
@@ -48,6 +55,9 @@ class ProfileRepository(
         return result.decodeList<Profile>().firstOrNull()
     }
 
+    /**
+     * Completa el onboarding actualizando el perfil con datos del usuario
+     */
     suspend fun finishOnboarding(
         fullName: String,
         phone: String,
@@ -69,6 +79,9 @@ class ProfileRepository(
         }
     }
     
+    /**
+     * Actualiza el estado de onboarding visto por el usuario
+     */
     suspend fun updateOnboardingSeen(seen: Boolean) {
         val userId = client.auth.currentUserOrNull()?.id ?: return
         val body = ProfileUpdate(is_onboarding_seen = seen)
@@ -77,6 +90,9 @@ class ProfileRepository(
         }
     }
     
+    /**
+     * Actualiza el número de teléfono del usuario
+     */
     suspend fun updatePhone(phone: String) {
         val userId = client.auth.currentUserOrNull()?.id ?: return
         val body = ProfileUpdate(phone = phone)
@@ -85,6 +101,9 @@ class ProfileRepository(
         }
     }
     
+    /**
+     * Obtiene la lista de avatares disponibles desde Supabase
+     */
     suspend fun getAvatars(): List<Avatar> {
         return try {
             val result = client.postgrest["avatars"].select {
